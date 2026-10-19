@@ -438,7 +438,11 @@
         </div>
 
         <div class="big-controls">
-          <button class="btn btn-gold" onclick="playDialSequence()">▶ PLAY SEQUENCE ON ACTIVE PAD</button>
+          <button class="btn btn-gold" onclick="playDialSequence()">▶ PLAY SEQUENCE ONCE</button>
+          <button class="btn btn-secondary" id="btnLoopSeq" onclick="toggleLoopSequence()">🔁 LOOP SEQUENCE: OFF</button>
+        </div>
+        <div class="big-controls" style="margin-top:6px;">
+          <button class="btn btn-stop" onclick="stopKeypadSequence()">■ STOP KEYPAD PLAYER</button>
           <button class="btn btn-secondary" onclick="downloadDialSequenceWav()">⬇ DOWNLOAD SEQUENCE (.WAV)</button>
         </div>
 
@@ -790,6 +794,9 @@
         scriptNode.disconnect();
         scriptNode = null;
       }
+      if (typeof stopKeypadSequence === 'function') {
+        stopKeypadSequence();
+      }
       document.getElementById('btnToggleStream').textContent = "▶ START LIVE AUDIO";
       document.getElementById('btnMetalSwitch').textContent = "SWITCH: OFF";
       updateTierUI();
@@ -974,6 +981,9 @@
     // =========================================================================
     let noteMs = 160;
     let gapMs = 60;
+    let isLoopingSequence = false;
+    let keypadLoopTimer = null;
+    let activeKeypadNodes = [];
 
     function updateNoteSpeed(val) {
       noteMs = Number(val);
@@ -1040,6 +1050,49 @@
 
       osc1.start(startTime); osc2.start(startTime);
       osc1.stop(startTime + durSec + 0.01); osc2.stop(startTime + durSec + 0.01);
+      activeKeypadNodes.push(osc1, osc2, env);
+    }
+
+    function clearActiveKeypadAudio() {
+      if (keypadLoopTimer) {
+        clearTimeout(keypadLoopTimer);
+        keypadLoopTimer = null;
+      }
+      for (const node of activeKeypadNodes) {
+        try {
+          if (node.stop) node.stop();
+          if (node.disconnect) node.disconnect();
+        } catch (_) {}
+      }
+      activeKeypadNodes = [];
+    }
+
+    function stopKeypadSequence() {
+      isLoopingSequence = false;
+      clearActiveKeypadAudio();
+      const btn = document.getElementById('btnLoopSeq');
+      if (btn) {
+        btn.textContent = "🔁 LOOP SEQUENCE: OFF";
+        btn.style.background = "";
+        btn.style.borderColor = "";
+        btn.style.color = "";
+      }
+    }
+
+    function toggleLoopSequence() {
+      ensureAudio();
+      isLoopingSequence = !isLoopingSequence;
+      const btn = document.getElementById('btnLoopSeq');
+      if (isLoopingSequence) {
+        btn.textContent = "🔁 LOOP SEQUENCE: ON (ACTIVE)";
+        btn.style.background = "#064e3b";
+        btn.style.borderColor = "#34d399";
+        btn.style.color = "#fff";
+        awardStar("Infinite Phonics Loop");
+        playDialSequence();
+      } else {
+        stopKeypadSequence();
+      }
     }
 
     function playBlueBox2600() {
@@ -1066,10 +1119,12 @@
 
     function playDialSequence() {
       ensureAudio();
+      clearActiveKeypadAudio();
       const tableKey = document.getElementById('selectKeypadTable').value;
       const entries = TABLES[tableKey];
       const seq = document.getElementById('inputDialSeq').value.toUpperCase();
-      let cursor = audioCtx.currentTime + 0.02;
+      const startNow = audioCtx.currentTime + 0.02;
+      let cursor = startNow;
 
       for (const ch of seq) {
         if (ch === ' ') {
@@ -1084,6 +1139,15 @@
           playDualToneAt(item.f1, item.f2, tableKey, cursor, d);
           cursor += d + g;
         }
+      }
+
+      if (isLoopingSequence) {
+        const totalDurationMs = Math.max(120, Math.round((cursor - startNow) * 1000) + gapMs);
+        keypadLoopTimer = setTimeout(() => {
+          if (isLoopingSequence) {
+            playDialSequence();
+          }
+        }, totalDurationMs);
       }
     }
 
