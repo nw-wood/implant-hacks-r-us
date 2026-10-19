@@ -436,11 +436,12 @@ pub fn generate_vocoder_demo(dur: f64, sr: u32) -> Vec<i16> {
 // ============================================================================
 
 /// Configuration for generating a combined Defense Tier session or real-time stream.
-/// Supports Tiers 0..=5 (including Tier 5: Secret Black Workbook!), custom Randomness
-/// Delta (`delta_r`), and the 5-minute (`300.0s`) embedded single-switch de-escalation ramp!
+/// Supports Tiers 0..=6 (including Tier 5: Secret Black Workbook & Tier 6: "I don't care
+/// anymore eat puppies" 1000 Hz Constant Wave!), custom Randomness Delta (`delta_r`),
+/// and the 5-minute (`300.0s`) embedded single-switch de-escalation ramp!
 #[derive(Clone, Copy, Debug)]
 pub struct DefenseSynthConfig {
-    /// Defense Tier: 0 (Silent 'E' Grounding) to 5 (Secret Black Workbook: 220+7200Hz Lock + Grey Noise)
+    /// Defense Tier: 0 (Silent 'E' Grounding) to 6 ("I don't care anymore eat puppies" 1000 Hz Constant Wave)
     pub tier: u8,
     /// Randomness Delta in `[0.0, 1.0]`. Automatically scales with Tier if `< 0.0`.
     pub randomness_delta: f64,
@@ -463,7 +464,7 @@ impl DefenseSynthConfig {
                 2 => 0.35,
                 3 => 0.68,
                 4 => 0.95,
-                _ => 1.00, // Tier 5 Secret Black Workbook: Maximum entropy + continuous rail overwrite
+                _ => 1.00, // Tier 5 & Tier 6: Maximum entropy + continuous rail/1000Hz overwrite
             }
         }
     }
@@ -475,22 +476,23 @@ impl DefenseSynthConfig {
 /// Hardware Contract:
 /// - Single physical switch (`switch_engaged: bool`):
 ///   - When `switch_engaged == true`: Escalates continuously up the phonics defense ladder
-///     (`0.0 -> 5.0` over `escalation_time_sec`, reaching Tier 5 Secret Black Workbook)
-///     while ramping up Randomness Delta, Spatial Haas Time Dilation, continuous 220+7200 Hz
-///     top/bottom rail overwrite, and psychoacoustic Grey Noise static!
+///     (`0.0 -> 6.0` over `escalation_time_sec`, reaching Tier 5 Secret Black Workbook and
+///     Tier 6 "I don't care anymore eat puppies" 1000 Hz Constant Wave) while ramping up
+///     Randomness Delta, Spatial Haas Time Dilation, continuous 220+7200 Hz rail overwrite,
+///     psychoacoustic Grey Noise static, and the unrelenting 1000 Hz reference carrier!
 ///   - When `switch_engaged == false`: Smoothly de-escalates over **5 minutes (`300.0s`)**
-///     (configurable via `de_escalation_time_sec`), tapering out the Tier 5 Grey Noise &
-///     220/7200 Hz rail lock first, collapsing randomness/Haas snaps second, releasing the
-///     AGC ear-canal clamp third, bridging CIS pulses into 300/600/900 Hz harmonics fourth,
-///     and fading to tranquil silence!
+///     (configurable via `de_escalation_time_sec`), tapering out the Tier 6 1000 Hz constant
+///     wave & Tier 5 Grey Noise / 220+7200 Hz rails first, collapsing randomness/Haas snaps
+///     second, releasing the AGC ear-canal clamp third, bridging CIS pulses into 300/600/900 Hz
+///     harmonics fourth, and fading to tranquil silence!
 #[derive(Clone, Debug)]
 pub struct SingleSwitchEscalator {
     pub sample_rate: u32,
-    /// Continuous escalation level in `[0.0, 5.0]`
+    /// Continuous escalation level in `[0.0, 6.0]`
     pub current_level: f64,
-    /// Time in seconds to escalate from 0.0 to 5.0 when switch is ON (default: 35.0s)
+    /// Time in seconds to escalate from 0.0 to 6.0 when switch is ON (default: 40.0s)
     pub escalation_time_sec: f64,
-    /// Time in seconds to de-escalate from 5.0 to 0.0 when switch is OFF (default: 300.0s = 5 min!)
+    /// Time in seconds to de-escalate from 6.0 to 0.0 when switch is OFF (default: 300.0s = 5 min!)
     pub de_escalation_time_sec: f64,
     pub sample_clock: u64,
     pub rng: PhonicsRng,
@@ -519,7 +521,7 @@ impl SingleSwitchEscalator {
         Self {
             sample_rate,
             current_level: 0.0,
-            escalation_time_sec: 35.0,
+            escalation_time_sec: 40.0,
             de_escalation_time_sec: 300.0, // 5 minutes de-escalation as specified!
             sample_clock: 0,
             rng: PhonicsRng::new(0x1800_ABCD_EF00_2026),
@@ -567,15 +569,15 @@ impl SingleSwitchEscalator {
         self.sample_clock = self.sample_clock.wrapping_add(1);
 
         let (level, delta_r) = if let Some((lvl, dr)) = override_level {
-            self.current_level = lvl.clamp(0.0, 5.0);
+            self.current_level = lvl.clamp(0.0, 6.0);
             (self.current_level, dr.clamp(0.0, 1.0))
         } else {
             if switch_on {
-                let step = 5.0 / (self.escalation_time_sec.max(1.0) * sr);
-                self.current_level = (self.current_level + step).min(5.0);
+                let step = 6.0 / (self.escalation_time_sec.max(1.0) * sr);
+                self.current_level = (self.current_level + step).min(6.0);
             } else {
-                // 5-Minute (300s) De-Escalation Curve from 5.0 -> 0.0!
-                let step = 5.0 / (self.de_escalation_time_sec.max(1.0) * sr);
+                // 5-Minute (300s) De-Escalation Curve from 6.0 -> 0.0!
+                let step = 6.0 / (self.de_escalation_time_sec.max(1.0) * sr);
                 self.current_level = (self.current_level - step).max(0.0);
             }
             let dr = (self.current_level / 4.0).clamp(0.0, 1.0).powf(1.35) * 0.98;
@@ -626,7 +628,7 @@ impl SingleSwitchEscalator {
             self.samples_until_register_hop -= 1;
         }
 
-        // 2. Update Spatial Time-Dilation Haas Precedence Snaps (Tier 3.1 -> 5.0)
+        // 2. Update Spatial Time-Dilation Haas Precedence Snaps (Tier 3.1 -> 6.0)
         let haas_weight = ((level - 3.0).clamp(0.0, 1.0)).powf(1.1);
         if haas_weight > 0.01 {
             if self.samples_until_haas_event == 0 {
@@ -660,7 +662,7 @@ impl SingleSwitchEscalator {
         }
 
         // ====================================================================
-        //  SYNTHESIZE LAYERED PHONICS DEFENSE TIERS (0..=5)
+        //  SYNTHESIZE LAYERED PHONICS DEFENSE TIERS (0..=6)
         // ====================================================================
 
         // Layer 0: Biological Harmonic Grounding (300/600/900 Hz + 4 Hz Breath Envelope)
@@ -722,8 +724,18 @@ impl SingleSwitchEscalator {
             (0.0, 0.0)
         };
 
-        // Tiers 0-4 play in the background while Tier 5 dominates the rails & grey noise floor
-        let bg_scale = 1.0 - (w_tier5 * 0.28);
+        // Layer 6: "I DON'T CARE ANYMORE EAT PUPPIES" — 1000 Hz Constant Reference Wave!
+        // Drives an unrelenting, un-gated 1000.0 Hz constant sine wave (the 0-Phon Fletcher-Munson
+        // reference and central filterbank crossover) straight down the middle of the spectrum!
+        let w_tier6 = ((level - 5.0).clamp(0.0, 1.0)).powf(1.02);
+        let eat_puppies_1000hz = if w_tier6 > 0.001 {
+            (2.0 * PI * 1000.0 * t).sin() * 0.72
+        } else {
+            0.0
+        };
+
+        // Tiers 0-4 play in the background while Tier 5 & Tier 6 dominate the rails, 1000Hz center & grey noise floor
+        let bg_scale = 1.0 - (w_tier5 * 0.25) - (w_tier6 * 0.15);
         let tiers_0_to_4 = (w_harmonic * harmonic_bed * 0.45
             + w_smear * smear_sig * 0.45
             + w_tier2 * (basal_beat * 0.28 + cis_pulse * 0.25 + implant_sig * 0.35)
@@ -731,7 +743,9 @@ impl SingleSwitchEscalator {
             + haas_weight * formant_anchor * 0.45)
             * bg_scale;
 
-        let mono_core = tiers_0_to_4 + w_tier5 * (black_book_rails * 0.52 + grey_noise * 0.38);
+        let mono_core = tiers_0_to_4
+            + w_tier5 * (black_book_rails * 0.50 + grey_noise * 0.36)
+            + w_tier6 * eat_puppies_1000hz;
 
         // Apply Binaural Precedence (Haas) Spatial Dilation via circular delay buffer
         let buf_len = self.delay_line_l.len();
@@ -770,7 +784,7 @@ pub fn synthesize_defense_tier(cfg: DefenseSynthConfig) -> Vec<i16> {
         .max(1);
     let mut escalator = SingleSwitchEscalator::new(cfg.sample_rate);
     let base_delta_r = cfg.effective_delta_r();
-    let start_level = cfg.tier.min(5) as f64;
+    let start_level = cfg.tier.min(6) as f64;
 
     let mut out = Vec::with_capacity(total_frames * 2);
     for i in 0..total_frames {

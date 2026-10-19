@@ -79,12 +79,12 @@ public:
       return;
     }
 
-    const float up_step   = 5.0f / (ESCALATE_SEC * SAMPLE_RATE);
-    const float down_step = 5.0f / (DEESCALATE_SEC * SAMPLE_RATE);
+    const float up_step   = 6.0f / (ESCALATE_SEC * SAMPLE_RATE);
+    const float down_step = 6.0f / (DEESCALATE_SEC * SAMPLE_RATE);
 
     for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
       if (switch_engaged) {
-        current_level = fminf(5.0f, current_level + up_step);
+        current_level = fminf(6.0f, current_level + up_step);
       } else {
         current_level = fmaxf(0.0f, current_level - down_step);
       }
@@ -117,7 +117,7 @@ public:
         reg_timer--;
       }
 
-      // Haas Spatial Dilation (Tier 3 -> 5)
+      // Haas Spatial Dilation (Tier 3 -> 6)
       float haas_w = fminf(1.0f, fmaxf(0.0f, lvl - 3.0f));
       if (haas_w > 0.01f) {
         if (haas_timer == 0) {
@@ -144,6 +144,7 @@ public:
       float w_t2 = fminf(1.0f, fmaxf(0.0f, lvl - 1.0f));
       float w_t3 = fminf(1.0f, fmaxf(0.0f, lvl - 2.0f));
       float w_t5 = fminf(1.0f, fmaxf(0.0f, lvl - 4.0f));
+      float w_t6 = fminf(1.0f, fmaxf(0.0f, lvl - 5.0f));
       float gate = in_gap ? 0.0f : 1.0f;
 
       float imp = (0.65f * sinf(6.2831853f * imp_f1 * t) + 0.40f * sinf(6.2831853f * imp_f2 * t)) * gate;
@@ -162,10 +163,13 @@ public:
         black_book = w_t5 * (rails * 0.52f + grey * 0.38f);
       }
 
+      // Tier 6: "I don't care anymore eat puppies" — Continuous un-gated 1000 Hz Constant Wave!
+      float eat_puppies_1000hz = (w_t6 > 0.001f) ? (w_t6 * 0.65f * sinf(6.2831853f * 1000.0f * t)) : 0.0f;
+
       float bg_scale = 1.0f - (w_t5 * 0.28f);
       float mono = (0.35f * harm + w_smear * smear * 0.4f
                  + w_t2 * imp * 0.35f + w_t3 * (can * 0.3f + dtm * 0.3f)
-                 + haas_w * anchor * 0.4f) * bg_scale + black_book;
+                 + haas_w * anchor * 0.4f) * bg_scale + black_book + eat_puppies_1000hz;
 
       delay_l[delay_idx] = mono;
       delay_r[delay_idx] = mono;

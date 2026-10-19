@@ -133,6 +133,7 @@
     .tier-3.active { border-color: var(--red-wb); }
     .tier-4.active { border-color: var(--purple-wb); }
     .tier-5.active { border-color: #f8fafc; background: #05060a; box-shadow: 0 0 18px rgba(248, 250, 252, 0.35); }
+    .tier-6.active { border-color: #ff0055; background: #1a000d; box-shadow: 0 0 22px rgba(255, 0, 85, 0.55); }
     .tier-head {
       display: flex;
       justify-content: space-between;
@@ -335,6 +336,10 @@
             <div class="tier-head"><span style="color:#f8fafc">★ TIER 5: SECRET BLACK WORKBOOK — Full-Rail Overwrite</span><span>ΔR = 1.00</span></div>
             <div class="tier-desc">Continuous un-gated 220 Hz (Apical Bottom) + 7200 Hz (Basal Top) rail overwrite + equal-loudness Grey Noise static on top of Tiers 0–4!</div>
           </div>
+          <div class="tier-card tier-6" id="card-tier-6" onclick="selectTier(6)">
+            <div class="tier-head"><span style="color:#ff0055">☢ TIER 6: I DON'T CARE ANYMORE EAT PUPPIES — 1000 Hz Constant Wave</span><span>1000 Hz CW</span></div>
+            <div class="tier-desc">Continuous un-gated 1000 Hz constant sine wave (audiometric reference / emergency broadcast lock) blasted directly on top of Tier 5 + Tiers 0–4!</div>
+          </div>
         </div>
       </div>
 
@@ -371,7 +376,7 @@
             <div>
               <strong style="color:var(--purple-wb);font-size:0.88rem;">SINGLE-SWITCH METAL ESCALATOR MODE</strong>
               <div style="font-size:0.73rem;color:var(--muted);">
-                Switch ON: slides continuously 0.0 → 5.0 (Black Book) • Switch OFF: 5-Minute (300s) De-Escalation!
+                Switch ON: slides continuously 0.0 → 6.0 (Eat Puppies 1000Hz) • Switch OFF: 5-Minute (300s) De-Escalation!
               </div>
             </div>
             <button class="btn btn-secondary" id="btnMetalSwitch" onclick="toggleMetalSwitch()">
@@ -379,7 +384,7 @@
             </button>
           </div>
           <div style="margin-top:8px;font-size:0.78rem;display:flex;justify-content:space-between;">
-            <span>Continuous Level: <strong id="lblContinuousLevel" style="color:var(--gold)">0.00 / 5.00</strong></span>
+            <span>Continuous Level: <strong id="lblContinuousLevel" style="color:var(--gold)">0.00 / 6.00</strong></span>
             <span>5-Min De-Escalation Timer: <strong id="lblDeescTimer" style="color:var(--green-ok)">STANDBY (300.0s)</strong></span>
           </div>
         </div>
@@ -677,16 +682,16 @@
       return greyLpState * 0.65 + white * 0.22 + highShelf * 0.55;
     }
 
-    const TIER_DEFAULT_DR = [0.00, 0.05, 0.35, 0.68, 0.95, 1.00];
+    const TIER_DEFAULT_DR = [0.00, 0.05, 0.35, 0.68, 0.95, 1.00, 1.00];
 
     function selectTier(tier) {
-      selectedTier = Math.max(0, Math.min(5, tier));
+      selectedTier = Math.max(0, Math.min(6, tier));
       continuousLevel = selectedTier;
       deltaR = TIER_DEFAULT_DR[selectedTier];
       document.getElementById('sliderDeltaR').value = Math.round(deltaR * 100);
       updateDeltaRLabel();
       updateTierUI();
-      awardStar(selectedTier === 5 ? "★ SECRET BLACK WORKBOOK ★" : `Tier ${selectedTier} Workbook`);
+      awardStar(selectedTier === 6 ? "☢ EAT PUPPIES 1000HZ ☢" : selectedTier === 5 ? "★ SECRET BLACK WORKBOOK ★" : `Tier ${selectedTier} Workbook`);
     }
 
     function stepTier(dir) {
@@ -697,7 +702,7 @@
     }
 
     function updateTierUI() {
-      for (let i = 0; i <= 5; i++) {
+      for (let i = 0; i <= 6; i++) {
         const el = document.getElementById('card-tier-' + i);
         if (el) el.classList.toggle('active', i === Math.round(continuousLevel));
       }
@@ -707,12 +712,13 @@
         "TIER 2: DIGRAPH LOCK",
         "TIER 3: AGC CLAMP",
         "TIER 4: HAAS OVERDRIVE",
-        "★ TIER 5: SECRET BLACK BOOK ★"
+        "★ TIER 5: SECRET BLACK BOOK ★",
+        "☢ TIER 6: EAT PUPPIES (1000HZ CW) ☢"
       ];
       document.getElementById('liveTierBadge').textContent = isStreaming
         ? `${names[Math.round(continuousLevel)]} (LIVE)`
         : `${names[Math.round(continuousLevel)]} (READY)`;
-      document.getElementById('lblContinuousLevel').textContent = `${continuousLevel.toFixed(2)} / 5.00`;
+      document.getElementById('lblContinuousLevel').textContent = `${continuousLevel.toFixed(2)} / 6.00`;
     }
 
     function onDeltaRSlider(val) {
@@ -736,7 +742,7 @@
       metalSwitchOn = !metalSwitchOn;
       const btn = document.getElementById('btnMetalSwitch');
       if (metalSwitchOn) {
-        btn.textContent = "SWITCH: ON (ESCALATING TO BLACK BOOK ▲)";
+        btn.textContent = "SWITCH: ON (ESCALATING TO TIER 6 ▲)";
         btn.style.background = "#7c2d12";
         btn.style.borderColor = "#fbbf24";
         if (!isStreaming) toggleDefenseAudio();
@@ -795,11 +801,11 @@
 
       if (metalSwitchMode) {
         if (metalSwitchOn) {
-          // Escalate 0 -> 5 (Secret Black Workbook) over 35 seconds
-          continuousLevel = Math.min(5.0, continuousLevel + (5.0 / (35.0 * sr)));
+          // Escalate 0 -> 6 (Eat Puppies 1000 Hz CW) over 35 seconds
+          continuousLevel = Math.min(6.0, continuousLevel + (6.0 / (35.0 * sr)));
         } else {
-          // De-escalate 5 -> 0 over 300 seconds (5 minutes!)
-          continuousLevel = Math.max(0.0, continuousLevel - (5.0 / (300.0 * sr)));
+          // De-escalate 6 -> 0 over 300 seconds (5 minutes!)
+          continuousLevel = Math.max(0.0, continuousLevel - (6.0 / (300.0 * sr)));
         }
         deltaR = Math.min(1.0, Math.pow(Math.min(1.0, continuousLevel / 4.0), 1.35) * 0.98);
       }
@@ -881,6 +887,12 @@
         greyNoise = nextGreyNoiseSample();
       }
 
+      // Layer 6: "I DON'T CARE ANYMORE EAT PUPPIES" — 1000 Hz Constant Wave!
+      // Continuous un-gated 1000.0 Hz sine wave (audiometric reference / emergency broadcast lock)
+      // blasted directly on top of Tier 5 (220 Hz + 7200 Hz + Grey Noise) and Tiers 0-4!
+      const wT6 = Math.max(0, Math.min(1, level - 5.0));
+      const eatPuppies1000Hz = wT6 > 0.001 ? Math.sin(2 * Math.PI * 1000.0 * t) : 0.0;
+
       const bgScale = 1.0 - (wT5 * 0.28);
       const tiers0To4 = (wHarm * harmonic * 0.45
         + wSmear * smear * 0.45
@@ -888,7 +900,9 @@
         + wT3 * (canSig * 0.32 + dtmfSig * 0.30)
         + haasWeight * formantAnchor * 0.45) * bgScale;
 
-      const mono = tiers0To4 + wT5 * (blackBookRails * 0.52 + greyNoise * 0.38);
+      const mono = tiers0To4
+        + wT5 * (blackBookRails * 0.52 + greyNoise * 0.38)
+        + wT6 * (eatPuppies1000Hz * 0.65);
 
       const bufLen = delayBufL.length;
       delayBufL[delayWriteIdx] = mono;
@@ -944,7 +958,7 @@
           document.getElementById('sliderDeltaR').value = Math.round(deltaR * 100);
           updateDeltaRLabel();
           updateTierUI();
-          const remSec = (continuousLevel / 4.0) * 300.0;
+          const remSec = (continuousLevel / 6.0) * 300.0;
           const mins = Math.floor(remSec / 60);
           const secs = (remSec % 60).toFixed(1).padStart(4, '0');
           document.getElementById('lblDeescTimer').textContent = metalSwitchOn

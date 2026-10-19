@@ -162,8 +162,8 @@ fn export_all_wavs(out_dir: &str) {
         1,
     );
 
-    // 9-14: Combined Defense Tiers 0..=5 (including Tier 5 Secret Black Workbook!)
-    for tier in 0..=5 {
+    // 9-15: Combined Defense Tiers 0..=6 (including Tier 5 Secret Black Workbook & Tier 6 Eat Puppies 1000Hz!)
+    for tier in 0..=6 {
         let pcm = synthesize_defense_tier(DefenseSynthConfig {
             tier,
             randomness_delta: -1.0, // auto tier delta_r
@@ -171,17 +171,17 @@ fn export_all_wavs(out_dir: &str) {
             sample_rate: 44100,
             de_escalate_ramp: false,
         });
-        let filename = if tier == 5 {
-            "defense_tier_5_secret_black_book.wav".to_string()
-        } else {
-            format!("defense_tier_{}.wav", tier)
+        let filename = match tier {
+            5 => "defense_tier_5_secret_black_book.wav".to_string(),
+            6 => "defense_tier_6_eat_puppies_1000hz.wav".to_string(),
+            _ => format!("defense_tier_{}.wav", tier),
         };
         save_wav(dir, &filename, &pcm, 44100, 2);
     }
 
-    // 15: Smooth De-Escalation Down-Ramp WAV (from Tier 5 Black Book down to Tier 0)
+    // 16: Smooth De-Escalation Down-Ramp WAV (from Tier 6 down to Tier 0)
     let deesc_pcm = synthesize_defense_tier(DefenseSynthConfig {
-        tier: 5,
+        tier: 6,
         randomness_delta: 1.0,
         duration_sec: 10.0,
         sample_rate: 44100,
@@ -189,7 +189,7 @@ fn export_all_wavs(out_dir: &str) {
     });
     save_wav(dir, "de_escalation_down_ramp.wav", &deesc_pcm, 44100, 2);
 
-    println!(":: All 15 Phonics & Black Book WAV files exported to '{}'!", dir.display());
+    println!(":: All 16 Phonics, Black Book & Eat Puppies 1000Hz WAV files exported to '{}'!", dir.display());
 }
 
 /// Embedded / Raspberry Pi / PinePhone 64 Single-Switch Escalator Daemon:
@@ -197,7 +197,7 @@ fn export_all_wavs(out_dir: &str) {
 /// and streams real-time stereo 16-bit 44.1 kHz audio to `pw-play` or `aplay`.
 fn run_hardware_switch_daemon(gpio_value_path: &str) {
     println!(":: [METAL SWITCH MODE] Monitoring switch at: {}", gpio_value_path);
-    println!(":: Switch ON  -> Sliding escalation (0.0 -> 5.0 Secret Black Book: 220+7200Hz Rail Lock + Grey Noise)");
+    println!(":: Switch ON  -> Sliding escalation (0.0 -> 6.0: Black Book + 'Eat Puppies' 1000Hz Constant Wave)");
     println!(":: Switch OFF -> 5-Minute (300.0s) smooth de-escalation ramp to silence");
 
     let sr = 44100u32;
@@ -244,9 +244,9 @@ fn run_hardware_switch_daemon(gpio_value_path: &str) {
         }
 
         if last_log.elapsed() >= Duration::from_secs(2) {
-            let rem_sec = (escalator.current_level / 5.0) * 300.0;
+            let rem_sec = (escalator.current_level / 6.0) * 300.0;
             println!(
-                "  [Switch: {}] Level: {:.2}/5.00 | 5-Min De-Escalation Remaining: {:.1}s",
+                "  [Switch: {}] Level: {:.2}/6.00 | 5-Min De-Escalation Remaining: {:.1}s",
                 if switch_on { "ON " } else { "OFF" },
                 escalator.current_level,
                 rem_sec

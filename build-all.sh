@@ -21,21 +21,21 @@ mkdir -p dist/web dist/linux-x86_64 dist/pinephone64-rpi-arm64 dist/wav-pack dis
 
 echo "[1/5] Building Host Linux x86_64 Binary..."
 cargo build --release --target x86_64-unknown-linux-gnu
-cp target/x86_64-unknown-linux-gnu/release/implant-hacks-r-us dist/linux-x86_64/
+cp -f target/x86_64-unknown-linux-gnu/release/implant-hacks-r-us dist/linux-x86_64/
 
 echo "[2/5] Building Static ARM64 Binary for PinePhone 64 & Raspberry Pi (aarch64-unknown-linux-musl)..."
 cargo zigbuild --release --target aarch64-unknown-linux-musl
-cp target/aarch64-unknown-linux-musl/release/implant-hacks-r-us dist/pinephone64-rpi-arm64/implant-hacks-r-us-static
+cp -f target/aarch64-unknown-linux-musl/release/implant-hacks-r-us dist/pinephone64-rpi-arm64/implant-hacks-r-us-static
 
 echo "[3/5] Building WebAssembly DSP Core (wasm32-unknown-unknown) & Standalone Web App..."
 cargo build --release --target wasm32-unknown-unknown
-cp target/wasm32-unknown-unknown/release/implant_hacks_r_us.wasm dist/web/
-cp web/index.html dist/web/index.html
+cp -f target/wasm32-unknown-unknown/release/implant_hacks_r_us.wasm dist/web/
+cp -f web/index.html dist/web/index.html
 
 echo "[4/5] Copying Embedded Metal Sources (ESP32, Teensy 4.1 i.MXRT1062, RPi GPIO)..."
-cp -r firmware/* dist/firmware/
+cp -rf firmware/* dist/firmware/
 
-echo "[5/5] Generating Complete 14-File Phonics & Defense WAV Pack..."
+echo "[5/5] Generating Complete 16-File Phonics & Defense WAV Pack..."
 ./dist/linux-x86_64/implant-hacks-r-us --export-all dist/wav-pack
 
 echo "======================================================================"
@@ -45,5 +45,5 @@ echo "   - dist/web/implant_hacks_r_us.wasm              (Compiled Rust WASM DSP
 echo "   - dist/linux-x86_64/implant-hacks-r-us          (Single-file x86_64 Studio + CLI + Switch Daemon)"
 echo "   - dist/pinephone64-rpi-arm64/implant-hacks-r-us-static (100% Static ARM64 Binary for PinePhone 64 & RPi)"
 echo "   - dist/firmware/                                (Teensy 4.1 i.MXRT1062, ESP32, RPi 5-min De-escalator)"
-echo "   - dist/wav-pack/                                (All 14 ready-to-play .WAV files)"
+echo "   - dist/wav-pack/                                (All 16 ready-to-play .WAV files)"
 echo "======================================================================"

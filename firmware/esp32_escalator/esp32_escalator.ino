@@ -53,15 +53,15 @@ void setup() {
 }
 
 void loop() {
-  const float up_step   = 5.0f / (ESCALATE_SEC * SAMPLE_RATE);
-  const float down_step = 5.0f / (DEESCALATE_SEC * SAMPLE_RATE);
+  const float up_step   = 6.0f / (ESCALATE_SEC * SAMPLE_RATE);
+  const float down_step = 6.0f / (DEESCALATE_SEC * SAMPLE_RATE);
   const uint32_t us_per_sample = (uint32_t)(1000000.0f / SAMPLE_RATE);
   uint32_t next_tick = micros();
 
   while (true) {
     bool sw_on = (digitalRead(SWITCH_GPIO) == LOW);
     if (sw_on) {
-      current_level = fminf(5.0f, current_level + up_step);
+      current_level = fminf(6.0f, current_level + up_step);
     } else {
       current_level = fmaxf(0.0f, current_level - down_step);
     }
@@ -123,11 +123,15 @@ void loop() {
       black_book = w_t5 * (rails * 0.52f + grey * 0.38f);
     }
 
+    // Tier 6: "I don't care anymore eat puppies" — Continuous un-gated 1000 Hz Constant Wave!
+    float w_t6 = fminf(1.0f, fmaxf(0.0f, lvl - 5.0f));
+    float eat_puppies_1000hz = (w_t6 > 0.001f) ? (w_t6 * 0.65f * sinf(6.2831853f * 1000.0f * t)) : 0.0f;
+
     float bg_scale = 1.0f - (w_t5 * 0.28f);
     float mono = (0.3f * harm + fminf(1.0f, lvl) * 0.3f * smear
                + fminf(1.0f, fmaxf(0.0f, lvl - 1.0f)) * 0.2f * imp
                + fminf(1.0f, fmaxf(0.0f, lvl - 2.0f)) * 0.2f * can) * bg_scale
-               + black_book;
+               + black_book + eat_puppies_1000hz;
 
     delay_buf[delay_idx] = mono;
     uint8_t d_idx = (delay_idx + 128 - haas_lag) & 127;
