@@ -1,0 +1,18 @@
+app-id: org.nwwood.ImplantHacksRUs
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+command: implant-hacks-r-us
+finish-args:
+  - --share=network
+  - --socket=pulseaudio
+  - --filesystem=xdg-download
+modules:
+  - name: implant-hacks-r-us
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 dist/linux-x86_64/implant-hacks-r-us /app/bin/implant-hacks-r-us
+      - install -Dm644 flatpak/org.nwwood.ImplantHacksRUs.desktop /app/share/applications/org.nwwood.ImplantHacksRUs.desktop
+    sources:
+      - type: dir
+        path: ..

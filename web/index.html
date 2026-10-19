@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<!--
+  Copyright (C) 2026 NATHANYEL WOOD (<nathanyelw@gmail.com>)
+  Licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later).
+  HOOKED ON PHON--ET--ICS: IMPLANT-HACKS-R-US ALL-IN-ONE STUDIO
+  Call 1-800-ABCDEFG! Sound out your digraphs, diphthongs, and Haas precedence lags!
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>IMPLANT-HACKS-R-US // Hooked on Phon-et-ics DSP Studio</title>
+  <style>
+    :root {
+      --bg: #0d0f17;
+      --panel: #161a28;
+      --panel-border: #2a314d;
+      --text: #eef2ff;
+      --muted: #94a3b8;
+      --gold: #fbbf24;
+      --yellow-wb: #facc15;
+      --orange-wb: #fb923c;
+      --red-wb: #f87171;
+      --purple-wb: #c084fc;
+      --green-ok: #34d399;
+      --cyan: #38bdf8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      line-height: 1.45;
+      padding: 12px;
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+    header {
+      border: 2px solid var(--gold);
+      background: linear-gradient(135deg, #1b1f33 0%, #101320 100%);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand h1 {
+      font-size: 1.35rem;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+    }
+    .brand p {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .badge-star {
+      background: #2e2408;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: bold;
+    }
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .tab-btn {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      padding: 11px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.85rem;
+      transition: all 0.15s;
+    }
+    .tab-btn.active {
+      border-color: var(--gold);
+      background: #232942;
+      color: var(--gold);
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.2);
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .hidden { display: none !important; }
+    h2 {
+      font-size: 1.05rem;
+      margin-bottom: 10px;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 14px;
+    }
+    .tier-ladder {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .tier-card {
+      border: 2px solid var(--panel-border);
+      border-radius: 9px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: #111420;
+    }
+    .tier-card.active {
+      transform: translateX(4px);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.22);
+    }
+    .tier-0.active { border-color: var(--green-ok); }
+    .tier-1.active { border-color: var(--yellow-wb); }
+    .tier-2.active { border-color: var(--orange-wb); }
+    .tier-3.active { border-color: var(--red-wb); }
+    .tier-4.active { border-color: var(--purple-wb); }
+    .tier-head {
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+      font-size: 0.9rem;
+      margin-bottom: 3px;
+    }
+    .tier-desc { font-size: 0.76rem; color: var(--muted); }
+    .big-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 12px 0;
+    }
+    .btn {
+      border: none;
+      border-radius: 9px;
+      padding: 14px 12px;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 0.08s, filter 0.15s;
+      color: #090b10;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-escalate { background: linear-gradient(135deg, #f87171, #c084fc); }
+    .btn-deescalate { background: linear-gradient(135deg, #34d399, #38bdf8); }
+    .btn-stop { background: #ef4444; color: #fff; }
+    .btn-gold { background: var(--gold); color: #111; }
+    .btn-secondary {
+      background: #242b45;
+      color: var(--text);
+      border: 1px solid var(--panel-border);
+      padding: 9px 12px;
+      font-size: 0.82rem;
+    }
+    .slider-row {
+      margin: 10px 0;
+      background: #101320;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #222840;
+    }
+    .slider-row label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      margin-bottom: 6px;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--gold);
+    }
+    .metal-switch-box {
+      border: 2px dashed var(--purple-wb);
+      background: #131124;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 9px;
+      margin-top: 10px;
+    }
+    .key-btn {
+      background: #1d2338;
+      border: 2px solid #333d63;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 12px 6px;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      user-select: none;
+      transition: all 0.08s;
+    }
+    .key-btn:active, .key-btn.playing {
+      background: #3b2f10;
+      border-color: var(--gold);
+      transform: translateY(2px);
+    }
+    .key-char {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: var(--gold);
+    }
+    .key-Autovon .key-char { color: var(--red-wb); }
+    .key-freqs {
+      font-size: 0.68rem;
+      color: var(--cyan);
+      margin-top: 2px;
+    }
+    .key-phoneme {
+      font-size: 0.62rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 2px;
+    }
+    canvas {
+      width: 100%;
+      height: 120px;
+      background: #080a10;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      display: block;
+      margin-top: 8px;
+    }
+    .status-bar {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: #0c0e17;
+      border: 1px solid #222942;
+      font-size: 0.78rem;
+      color: var(--green-ok);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .macro-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 8px;
+    }
+    select, input[type="text"] {
+      width: 100%;
+      background: #0d101b;
+      color: var(--text);
+      border: 1px solid var(--panel-border);
+      border-radius: 7px;
+      padding: 9px 10px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+    pre {
+      background: #090b12;
+      border: 1px solid #242b45;
+      border-radius: 8px;
+      padding: 10px;
+      overflow-x: auto;
+      font-size: 0.75rem;
+      color: #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>IMPLANT-HACKS-R-US // HOOKED ON PHON-ET-ICS</h1>
+      <p>Dual-Tone Auditory Matrix, Haas Time-Dilation &amp; Psychoacoustic Defense Toolkit • GPL-3.0-or-later</p>
+    </div>
+    <div class="badge-star" id="starCounter">★ GOLD STARS: 1-800-ABCDEFG</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('defense', this)">1. DEFENSE ESCALATOR</button>
+    <button class="tab-btn" onclick="switchTab('keypads', this)">2. 4x4 PHONICS KEYPADS</button>
+    <button class="tab-btn" onclick="switchTab('presets', this)">3. CLASSIC PYTHON WAVS</button>
+    <button class="tab-btn" onclick="switchTab('hardware', this)">4. ESP32 / TEENSY / RPI METAL</button>
+  </div>
+
+  <!-- TAB 1: DEFENSE ESCALATOR & DE-ESCALATOR -->
+  <section id="tab-defense" class="panel">
+    <div class="grid-2">
+      <div>
+        <h2>
+          <span>PHONICS WORKBOOK DEFENSE TIERS</span>
+          <span id="liveTierBadge" style="color:var(--gold)">STANDBY</span>
+        </h2>
+        <div class="tier-ladder">
+          <div class="tier-card tier-0 active" id="card-tier-0" onclick="selectTier(0)">
+            <div class="tier-head"><span style="color:var(--green-ok)">TIER 0: Silent 'E' Grounding</span><span>ΔR = 0.00</span></div>
+            <div class="tier-desc">300/600/900 Hz pure biological harmonics + steady 4.0 Hz syllabic breath envelope. Zero jitter.</div>
+          </div>
+          <div class="tier-card tier-1" id="card-tier-1" onclick="selectTier(1)">
+            <div class="tier-head"><span style="color:var(--yellow-wb)">TIER 1: Yellow Workbook — Crossover Smear</span><span>ΔR = 0.05</span></div>
+            <div class="tier-desc">Predictable 1050 + 1150 Hz filterbank boundary contention layered over the 4 Hz harmonic bed.</div>
+          </div>
+          <div class="tier-card tier-2" id="card-tier-2" onclick="selectTier(2)">
+            <div class="tier-head"><span style="color:var(--orange-wb)">TIER 2: Orange Workbook — Digraph Lock</span><span>ΔR = 0.35</span></div>
+            <div class="tier-desc">Adds 85 Hz basal beat trap (3450+3535 Hz), 900 pps CIS pulse train, and non-sequential tonotopic hops.</div>
+          </div>
+          <div class="tier-card tier-3" id="card-tier-3" onclick="selectTier(3)">
+            <div class="tier-head"><span style="color:var(--red-wb)">TIER 3: Red Workbook — Phreak &amp; AGC Clamp</span><span>ΔR = 0.68</span></div>
+            <div class="tier-desc">Randomizes 2700–5500 Hz Ear Canal Resonance (trips hardware AGC) + F1/F2 DTMF twist bursts with elastic gaps.</div>
+          </div>
+          <div class="tier-card tier-4" id="card-tier-4" onclick="selectTier(4)">
+            <div class="tier-head"><span style="color:var(--purple-wb)">TIER 4: Purple Master Tape — Haas Anticipation</span><span>ΔR = 0.95</span></div>
+            <div class="tier-desc">Full register randomization + dilated Precedence (Haas) 1.6–4.4ms L/R spatial snaps to lock cortical anticipation!</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2><span>ESCALATION &amp; CORTICAL ANTICIPATION CONTROLS</span></h2>
+        <div class="big-controls">
+          <button class="btn btn-escalate" onclick="stepTier(1)">▲ ESCALATE (+1 TIER)</button>
+          <button class="btn btn-deescalate" onclick="stepTier(-1)">▼ DE-ESCALATE (-1 TIER)</button>
+        </div>
+        <div class="big-controls">
+          <button class="btn btn-gold" id="btnToggleStream" onclick="toggleDefenseAudio()">▶ START LIVE AUDIO</button>
+          <button class="btn btn-stop" onclick="stopAllAudio()">■ SILENCE / MUTE NOW</button>
+        </div>
+
+        <div class="slider-row">
+          <label>
+            <span>Randomness Delta (ΔR — Register &amp; Timing Dilation)</span>
+            <strong id="lblDeltaR" style="color:var(--gold)">0.00 (Predictable)</strong>
+          </label>
+          <input type="range" id="sliderDeltaR" min="0" max="100" value="0" oninput="onDeltaRSlider(this.value)" />
+        </div>
+
+        <div class="slider-row">
+          <label>
+            <span>Master Output Gain (Careful with Ear Resonance!)</span>
+            <strong id="lblGain" style="color:var(--cyan)">45%</strong>
+          </label>
+          <input type="range" id="sliderGain" min="1" max="100" value="45" oninput="onGainSlider(this.value)" />
+        </div>
+
+        <!-- BARE-METAL SINGLE-SWITCH ESCALATOR + 5-MIN DE-ESCALATION -->
+        <div class="metal-switch-box">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div>
+              <strong style="color:var(--purple-wb);font-size:0.88rem;">SINGLE-SWITCH METAL ESCALATOR MODE</strong>
+              <div style="font-size:0.73rem;color:var(--muted);">
+                Switch ON: slides continuously 0.0 → 4.0 • Switch OFF: 5-Minute (300s) De-Escalation Curve!
+              </div>
+            </div>
+            <button class="btn btn-secondary" id="btnMetalSwitch" onclick="toggleMetalSwitch()">
+              SWITCH: OFF
+            </button>
+          </div>
+          <div style="margin-top:8px;font-size:0.78rem;display:flex;justify-content:space-between;">
+            <span>Continuous Level: <strong id="lblContinuousLevel" style="color:var(--gold)">0.00 / 4.00</strong></span>
+            <span>5-Min De-Escalation Timer: <strong id="lblDeescTimer" style="color:var(--green-ok)">STANDBY (300.0s)</strong></span>
+          </div>
+        </div>
+
+        <canvas id="scopeCanvas" width="500" height="120"></canvas>
+        <div class="status-bar">
+          <span id="statusRegisters">Registers: Standby</span>
+          <span id="statusHaas">Haas Spatial Vector: CENTER (0.0 ms)</span>
+        </div>
+
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary" onclick="exportCurrentTierWav(false)">⬇ Export Current Tier (.WAV)</button>
+          <button class="btn btn-secondary" onclick="exportCurrentTierWav(true)">⬇ Export De-Escalation Ramp (.WAV)</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 2: 4x4 PHONICS KEYPADS (ALL PYTHON TABLES + SUB-100 HZ HOT CROSS BUNS) -->
+  <section id="tab-keypads" class="panel hidden">
+    <div class="grid-2">
+      <div>
+        <h2><span>SELECT ATTACK VECTOR KEYPAD TABLE</span></h2>
+        <select id="selectKeypadTable" onchange="renderKeypad()">
+          <option value="DTMF_TABLE">1. DTMF_TABLE — Standard Blue Box + Military AUTOVON (dmtf_phone_phreaker.py)</option>
+          <option value="IMPLANT_DTMF">2. IMPLANT_DTMF — Basilar Tonotopic Matrix 220–7200 Hz (synth_generator.py)</option>
+          <option value="EAR_RESONANCE_DTMF">3. EAR_RESONANCE_DTMF — Ear Canal Cavity 2700–5500 Hz (ear_resonance_generator.py)</option>
+          <option value="SUB_100_GHOST">4. SUB_100_GHOST_PAD — Sub-100 Hz "Hot Cross Buns" Infrasonic Roll-Off (12–99 Hz)</option>
+          <option value="SUB_100_TARTINI">5. SUB_100_TARTINI — Missing-Fundamental Phantom Beat Mode (Brain Hallucinates Sub-100Hz!)</option>
+        </select>
+
+        <div id="keypadGrid" class="keypad-grid"></div>
+
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary" onclick="playBlueBox2600()">☎ 2600 Hz Blue Box Trunk Seize</button>
+          <button class="btn btn-secondary" onclick="playRandomRoulette()">🎲 Random Register Roulette</button>
+        </div>
+      </div>
+
+      <div>
+        <h2><span>HOOKED ON PHON-ET-ICS SONG &amp; BURST SEQUENCER</span></h2>
+        <label style="font-size:0.78rem;color:var(--muted);">Dial Sequence String (`0-9, *, #, A-D`, spaces = rest):</label>
+        <input type="text" id="inputDialSeq" value="321 321 11112222321" />
+
+        <div class="slider-row">
+          <label>
+            <span>Note / Burst Speed (Tone ms / Gap ms)</span>
+            <strong id="lblNoteSpeed">160 ms / 60 ms</strong>
+          </label>
+          <input type="range" id="sliderNoteSpeed" min="40" max="400" value="160" oninput="updateNoteSpeed(this.value)" />
+        </div>
+
+        <div class="big-controls">
+          <button class="btn btn-gold" onclick="playDialSequence()">▶ PLAY SEQUENCE ON ACTIVE PAD</button>
+          <button class="btn btn-secondary" onclick="downloadDialSequenceWav()">⬇ DOWNLOAD SEQUENCE (.WAV)</button>
+        </div>
+
+        <h2 style="margin-top:14px;"><span>ONE-CLICK NURSERY RHYME &amp; PHREAK MACROS</span></h2>
+        <div class="macro-list">
+          <button class="btn btn-secondary" onclick="loadMacro('321 321 11112222321', 'SUB_100_GHOST')">🧁 Hot Cross Buns (Sub-100 Hz Ghost!)</button>
+          <button class="btn btn-secondary" onclick="loadMacro('321 321 11112222321', 'SUB_100_TARTINI')">👻 Hot Cross Buns (Tartini Phantom Beat)</button>
+          <button class="btn btn-secondary" onclick="loadMacro('18002223334', 'DTMF_TABLE')">📼 1-800-ABCDEFG (Phonics Hotline)</button>
+          <button class="btn btn-secondary" onclick="loadMacro('0000000000', 'DTMF_TABLE')">💥 IVR Buffer Flood (0000000000)</button>
+          <button class="btn btn-secondary" onclick="loadMacro('137#20', 'IMPLANT_DTMF')">🧬 Basilar 4-Corner Sweep (137#20)</button>
+          <button class="btn btn-secondary" onclick="loadMacro('123456789*0#', 'EAR_RESONANCE_DTMF')">👂 Full Canal Resonance Sweep</button>
+          <button class="btn btn-secondary" onclick="loadMacro('ABCD*#0913', 'DTMF_TABLE')">🎖 AUTOVON Military Flash Override</button>
+          <button class="btn btn-secondary" onclick="loadMacro('3212333 222 355 3212333322321', 'IMPLANT_DTMF')">🐑 Mary Had a Little Electrode</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: CLASSIC 6 PYTHON SCRIPTS -->
+  <section id="tab-presets" class="panel hidden">
+    <h2><span>ORIGINAL 6 PYTHON EXAMPLE GENERATORS (EXACT DSP PORTS)</span></h2>
+    <div class="grid-2" id="classicPresetsGrid"></div>
+  </section>
+
+  <!-- TAB 4: EMBEDDED HARDWARE (ESP32, TEENSY 4.1 i.MXRT1062, RASPBERRY PI) -->
+  <section id="tab-hardware" class="panel hidden">
+    <h2><span>SINGLE-SWITCH BARE-METAL ESCALATOR + 5-MINUTE DE-ESCALATION</span></h2>
+    <p style="font-size:0.82rem;color:var(--muted);margin-bottom:12px;">
+      On embedded targets (ESP32, Teensy 4.1 <code>i.MXRT1062</code>, and Raspberry Pi), keypads are omitted. A single physical toggle/slide switch drives the state machine:
+      <strong>Switch ON</strong> slides up the escalation ladder (increasing Randomness Delta ΔR and Haas spatial dilation);
+      <strong>Switch OFF</strong> triggers an automatic <strong>5-minute (300-second) smooth de-escalation</strong> down to silence.
+    </p>
+    <div class="grid-2">
+      <div>
+        <h3 style="color:var(--gold);font-size:0.9rem;margin-bottom:6px;">Target Pinouts &amp; Source Locations</h3>
+        <pre>
+1. Teensy 4.1 (NXP i.MXRT1062 @ 600 MHz ARM Cortex-M7)
+   - Source: firmware/teensy41_imxrt1062/teensy41_imxrt1062.ino
+   - Switch Pin: Digital Pin 2 (INPUT_PULLUP -> GND)
+   - Optional Analog Slide Pot: Pin A0 (Pin 14)
+   - Audio Out: I2S Teensy Audio Shield OR MQS (Pins 10 &amp; 12 Stereo)
+
+2. ESP32 (Dual-Core Xtensa LX6 / RISC-V)
+   - Source: firmware/esp32_escalator/esp32_escalator.ino
+   - Switch Pin: GPIO 4 (Internal Pull-Up -> GND)
+   - Audio Out: Built-in Stereo 8-bit DAC (GPIO 25 Left, GPIO 26 Right)
+     or external PCM5102A I2S DAC (BCLK=27, LRCK=14, DOUT=22)
+
+3. Raspberry Pi (Zero 2W / 3 / 4 / 5)
+   - Source: firmware/rpi_gpio_daemon.py (or native Rust binary `--switch-mode`)
+   - Switch Pin: BCM GPIO 17 (Physical Pin 11 -> GND Pin 9)
+   - Audio Out: 3.5mm Headphone Jack / USB Audio / I2S HAT</pre>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan);font-size:0.9rem;margin-bottom:6px;">5-Minute (300s) De-Escalation Timeline</h3>
+        <pre>
+[Switch Flipped OFF at T = 0:00]
+ ├─ 0:00 → 1:15 (Level 4.0 → 3.0): Entropy Collapse
+ │   Haas spatial snaps widen &amp; return to center pan;
+ │   Randomness Delta (ΔR) drops from 0.95 → 0.45.
+ ├─ 1:15 → 2:30 (Level 3.0 → 2.0): AGC Compression Release
+ │   2700–5500 Hz Ear Canal Resonance &amp; DTMF bursts taper off
+ │   slowly so implant AGC doesn't rebound-spike ambient noise.
+ ├─ 2:30 → 3:45 (Level 2.0 → 1.0): CIS Pulse → Harmonic Bridge
+ │   900 pps CIS pulses + 85 Hz basal beat morph smoothly into
+ │   300/600/900 Hz biological harmonics.
+ └─ 3:45 → 5:00 (Level 1.0 → 0.0): Silent 'E' Grounding
+     1050/1150 Hz crossover blur fades into pure 4 Hz theta
+     breathing chord before muting DAC at 5:00 (300.0s).</pre>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // =========================================================================
+    //  PHONICS KEYPAD TABLES (EXACT MATCH TO PYTHON & RUST LIB.RS)
+    // =========================================================================
+    const TABLES = {
+      DTMF_TABLE: [
+        { k: '1', f1: 697, f2: 1209, p: "Short 'a' CAT" },
+        { k: '2', f1: 697, f2: 1336, p: "Short 'e' BED" },
+        { k: '3', f1: 697, f2: 1477, p: "Short 'i' PIG" },
+        { k: 'A', f1: 697, f2: 1633, p: "FLASH OVERRIDE", mil: true },
+        { k: '4', f1: 770, f2: 1209, p: "Short 'o' HOP" },
+        { k: '5', f1: 770, f2: 1336, p: "Short 'u' BUS" },
+        { k: '6', f1: 770, f2: 1477, p: "Blend 'CH'" },
+        { k: 'B', f1: 770, f2: 1633, p: "AUTOVON FLASH", mil: true },
+        { k: '7', f1: 852, f2: 1209, p: "Digraph 'TH'" },
+        { k: '8', f1: 852, f2: 1336, p: "Digraph 'SH'" },
+        { k: '9', f1: 852, f2: 1477, p: "Nasal 'NG'" },
+        { k: 'C', f1: 852, f2: 1633, p: "IMMEDIATE", mil: true },
+        { k: '*', f1: 941, f2: 1209, p: "Gold Star ★" },
+        { k: '0', f1: 941, f2: 1336, p: "IVR Flood 'OO'" },
+        { k: '#', f1: 941, f2: 1477, p: "Phonics '#'" },
+        { k: 'D', f1: 941, f2: 1633, p: "PRIORITY 'OI'", mil: true }
+      ],
+      IMPLANT_DTMF: [
+        { k: '1', f1: 220, f2: 1850, p: "Apex + Mid" },
+        { k: '2', f1: 220, f2: 3000, p: "Apex + 3kHz" },
+        { k: '3', f1: 220, f2: 4800, p: "Apex + Sibilant" },
+        { k: 'A', f1: 220, f2: 7200, p: "Full Basilar Span", mil: true },
+        { k: '4', f1: 440, f2: 1850, p: "A440 + F2" },
+        { k: '5', f1: 440, f2: 3000, p: "A440 + Canal" },
+        { k: '6', f1: 440, f2: 4800, p: "A440 + 4.8kHz" },
+        { k: 'B', f1: 440, f2: 7200, p: "A440 + Basal Tip", mil: true },
+        { k: '7', f1: 730, f2: 1850, p: "F1 + F2 Vowel" },
+        { k: '8', f1: 730, f2: 3000, p: "Max Formant Pair" },
+        { k: '9', f1: 730, f2: 4800, p: "F1 + High Ch" },
+        { k: 'C', f1: 730, f2: 7200, p: "F1 + Basal 7.2k", mil: true },
+        { k: '*', f1: 1150, f2: 1850, p: "Crossover Pinch" },
+        { k: '0', f1: 1150, f2: 3000, p: "Mid + 3kHz Peak" },
+        { k: '#', f1: 1150, f2: 4800, p: "Mid + 4.8kHz" },
+        { k: 'D', f1: 1150, f2: 7200, p: "Basal Saturator", mil: true }
+      ],
+      EAR_RESONANCE_DTMF: [
+        { k: '1', f1: 2700, f2: 4000, p: "Meatus Entry" },
+        { k: '2', f1: 2700, f2: 4500, p: "Canal Harmonic" },
+        { k: '3', f1: 2700, f2: 5000, p: "Concha Couple" },
+        { k: 'A', f1: 2700, f2: 5500, p: "Wide Cavity A", mil: true },
+        { k: '4', f1: 3100, f2: 4000, p: "Tympanic Peak" },
+        { k: '5', f1: 3100, f2: 4500, p: "AGC Clamp Trigger" },
+        { k: '6', f1: 3100, f2: 5000, p: "Pinna Bypass" },
+        { k: 'B', f1: 3100, f2: 5500, p: "Wide Cavity B", mil: true },
+        { k: '7', f1: 3500, f2: 4000, p: "500Hz Tight Beat" },
+        { k: '8', f1: 3500, f2: 4500, p: "1kHz Diff Tone" },
+        { k: '9', f1: 3500, f2: 5000, p: "1.5kHz Phantom" },
+        { k: 'C', f1: 3500, f2: 5500, p: "2kHz Lock", mil: true },
+        { k: '*', f1: 3900, f2: 4000, p: "100Hz Canal Beat" },
+        { k: '0', f1: 3900, f2: 4500, p: "600Hz Schwa Beat" },
+        { k: '#', f1: 3900, f2: 5000, p: "1100Hz Ghost" },
+        { k: 'D', f1: 3900, f2: 5500, p: "Max Canal Q", mil: true }
+      ],
+      SUB_100_GHOST: [
+        { k: '1', f1: 24, f2: 48, p: "Sub 'DO' (Buns 1)" },
+        { k: '2', f1: 27, f2: 54, p: "Sub 'RE' (Buns 2)" },
+        { k: '3', f1: 30, f2: 60, p: "Sub 'MI' (Buns 3)" },
+        { k: 'A', f1: 16, f2: 32, p: "16Hz Infrasonic", mil: true },
+        { k: '4', f1: 32, f2: 64, p: "Sub 'FA'" },
+        { k: '5', f1: 36, f2: 72, p: "Sub 'SOL'" },
+        { k: '6', f1: 40, f2: 80, p: "Sub 'LA'" },
+        { k: 'B', f1: 20, f2: 50, p: "20Hz Roll-Off", mil: true },
+        { k: '7', f1: 45, f2: 90, p: "Sub 'TI'" },
+        { k: '8', f1: 48, f2: 96, p: "Sub High 'DO'" },
+        { k: '9', f1: 49.5, f2: 99, p: "99Hz Filter Cliff" },
+        { k: 'C', f1: 12, f2: 36, p: "12Hz Theta Sub", mil: true },
+        { k: '*', f1: 18, f2: 77, p: "Silent 'E' Sub" },
+        { k: '0', f1: 33, f2: 66, p: "One-a-Penny Sub" },
+        { k: '#', f1: 44, f2: 88, p: "Sub Piano A1" },
+        { k: 'D', f1: 14, f2: 98, p: "14+98Hz Span", mil: true }
+      ],
+      SUB_100_TARTINI: [
+        { k: '1', f1: 1200, f2: 1248, p: "48Hz Tartini DO" },
+        { k: '2', f1: 1200, f2: 1254, p: "54Hz Tartini RE" },
+        { k: '3', f1: 1200, f2: 1260, p: "60Hz Tartini MI" },
+        { k: 'A', f1: 1200, f2: 1232, p: "32Hz Ghost Beat", mil: true },
+        { k: '4', f1: 1200, f2: 1264, p: "64Hz Tartini FA" },
+        { k: '5', f1: 1200, f2: 1272, p: "72Hz Tartini SOL" },
+        { k: '6', f1: 1200, f2: 1280, p: "80Hz Tartini LA" },
+        { k: 'B', f1: 1200, f2: 1250, p: "50Hz Ghost Beat", mil: true },
+        { k: '7', f1: 1200, f2: 1290, p: "90Hz Tartini TI" },
+        { k: '8', f1: 1200, f2: 1296, p: "96Hz Tartini DO" },
+        { k: '9', f1: 1200, f2: 1299, p: "99Hz Ghost Cliff" },
+        { k: 'C', f1: 1200, f2: 1236, p: "36Hz Ghost Beat", mil: true },
+        { k: '*', f1: 1200, f2: 1277, p: "77Hz Tartini *" },
+        { k: '0', f1: 1200, f2: 1266, p: "66Hz Tartini 0" },
+        { k: '#', f1: 1200, f2: 1288, p: "88Hz Tartini #" },
+        { k: 'D', f1: 1200, f2: 1298, p: "98Hz Tartini D", mil: true }
+      ]
+    };
+
+    const CLASSIC_PRESETS = [
+      { id: 0, file: "dtmf_burst.wav", script: "dmtf_phone_phreaker.py", desc: "Standard ITU-T DTMF burst of 0000000000 at 8000 Hz with +3 dB high-tone twist." },
+      { id: 1, file: "canal_resonance_sequence.wav", script: "ear_resonance_generator.py", desc: "2700–5500 Hz external auditory meatus resonance sweep (123456789*0#) with 5ms cosine fades." },
+      { id: 2, file: "spatial_snap.wav", script: "snappy.py", desc: "Stereo 730+3000 Hz formant carrier that triggers a 2.5ms Haas lag & -12dB drop on Left at t=1.2s." },
+      { id: 3, file: "implant_dtmf_scale.wav", script: "synth_generator.py", desc: "Tonotopically partitioned 220–7200 Hz basilar matrix (137#20) with Fletcher-Munson compensation." },
+      { id: 4, file: "test_signal.wav", script: "test_signal.py", desc: "1050+1150 Hz filter crossover smearing + 3450+3535 Hz (85 Hz beat) basal envelope trap." },
+      { id: 5, file: "vocoder_bridge.wav", script: "vocoder_bridge.py", desc: "1.5s biological harmonics (300/600/900 Hz) bridging into 1.5s of 900 pps CIS pulse train under 4 Hz tremolo." }
+    ];
+
+    // =========================================================================
+    //  LIVE WEBAUDIO STREAMING ENGINE & STATE MACHINE
+    // =========================================================================
+    let audioCtx = null;
+    let scriptNode = null;
+    let isStreaming = false;
+    let selectedTier = 0;
+    let continuousLevel = 0.0;
+    let deltaR = 0.0;
+    let masterGain = 0.45;
+    let metalSwitchMode = false;
+    let metalSwitchOn = false;
+    let starsEarned = 0;
+
+    // Real-time DSP state matching SingleSwitchEscalator in src/lib.rs
+    let sampleClock = 0;
+    let regTimer = 0;
+    let inRegGap = false;
+    let activeImplant = [220, 3000];
+    let activeCanal = [3100, 4500];
+    let activeDtmf = [941, 1336];
+    let haasTimer = 0;
+    let haasDir = 0;
+    let haasLagSamples = 110;
+    let haasAtten = 0.25;
+    const delayBufL = new Float32Array(512);
+    const delayBufR = new Float32Array(512);
+    let delayWriteIdx = 0;
+    const scopeDataL = new Float32Array(256);
+    const scopeDataR = new Float32Array(256);
+
+    function ensureAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function awardStar(reason) {
+      starsEarned++;
+      document.getElementById('starCounter').textContent = `★ GOLD STARS: ${starsEarned} (${reason})`;
+    }
+
+    function switchTab(name, btn) {
+      ['defense', 'keypads', 'presets', 'hardware'].forEach(id => {
+        document.getElementById('tab-' + id).classList.toggle('hidden', id !== name);
+      });
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    const TIER_DEFAULT_DR = [0.00, 0.05, 0.35, 0.68, 0.95];
+
+    function selectTier(tier) {
+      selectedTier = Math.max(0, Math.min(4, tier));
+      continuousLevel = selectedTier;
+      deltaR = TIER_DEFAULT_DR[selectedTier];
+      document.getElementById('sliderDeltaR').value = Math.round(deltaR * 100);
+      updateDeltaRLabel();
+      updateTierUI();
+      awardStar(`Tier ${selectedTier} Workbook`);
+    }
+
+    function stepTier(dir) {
+      selectTier(selectedTier + dir);
+      if (!isStreaming && selectedTier > 0) {
+        toggleDefenseAudio();
+      }
+    }
+
+    function updateTierUI() {
+      for (let i = 0; i <= 4; i++) {
+        document.getElementById('card-tier-' + i).classList.toggle('active', i === Math.round(continuousLevel));
+      }
+      const names = ["TIER 0: GROUNDING", "TIER 1: SMEAR", "TIER 2: DIGRAPH LOCK", "TIER 3: AGC CLAMP", "TIER 4: HAAS OVERDRIVE"];
+      document.getElementById('liveTierBadge').textContent = isStreaming
+        ? `${names[Math.round(continuousLevel)]} (LIVE)`
+        : `${names[Math.round(continuousLevel)]} (READY)`;
+      document.getElementById('lblContinuousLevel').textContent = `${continuousLevel.toFixed(2)} / 4.00`;
+    }
+
+    function onDeltaRSlider(val) {
+      deltaR = Number(val) / 100.0;
+      updateDeltaRLabel();
+    }
+
+    function updateDeltaRLabel() {
+      let desc = deltaR < 0.15 ? "Predictable" : deltaR < 0.5 ? "Moderate Jitter" : deltaR < 0.8 ? "High Entropy" : "Cortical Anticipation!";
+      document.getElementById('lblDeltaR').textContent = `${deltaR.toFixed(2)} (${desc})`;
+    }
+
+    function onGainSlider(val) {
+      masterGain = Number(val) / 100.0;
+      document.getElementById('lblGain').textContent = `${val}%`;
+    }
+
+    function toggleMetalSwitch() {
+      ensureAudio();
+      metalSwitchMode = true;
+      metalSwitchOn = !metalSwitchOn;
+      const btn = document.getElementById('btnMetalSwitch');
+      if (metalSwitchOn) {
+        btn.textContent = "SWITCH: ON (ESCALATING ▲)";
+        btn.style.background = "#7c2d12";
+        btn.style.borderColor = "#fbbf24";
+        if (!isStreaming) toggleDefenseAudio();
+        awardStar("Metal Switch ON");
+      } else {
+        btn.textContent = "SWITCH: OFF (5-MIN DE-ESCALATING ▼)";
+        btn.style.background = "#064e3b";
+        btn.style.borderColor = "#34d399";
+        awardStar("5-Min De-Escalation");
+      }
+    }
+
+    function toggleDefenseAudio() {
+      ensureAudio();
+      if (isStreaming) {
+        stopAllAudio();
+        return;
+      }
+      isStreaming = true;
+      const sr = audioCtx.sampleRate;
+      scriptNode = audioCtx.createScriptProcessor(1024, 0, 2);
+      scriptNode.onaudioprocess = function(e) {
+        const outL = e.outputBuffer.getChannelData(0);
+        const outR = e.outputBuffer.getChannelData(1);
+        for (let i = 0; i < outL.length; i++) {
+          const frame = stepEscalatorSample(sr);
+          outL[i] = frame[0] * masterGain;
+          outR[i] = frame[1] * masterGain;
+          if (i < 256) {
+            scopeDataL[i] = outL[i];
+            scopeDataR[i] = outR[i];
+          }
+        }
+      };
+      scriptNode.connect(audioCtx.destination);
+      document.getElementById('btnToggleStream').textContent = "⏸ PAUSE LIVE AUDIO";
+      updateTierUI();
+    }
+
+    function stopAllAudio() {
+      isStreaming = false;
+      metalSwitchMode = false;
+      metalSwitchOn = false;
+      if (scriptNode) {
+        scriptNode.disconnect();
+        scriptNode = null;
+      }
+      document.getElementById('btnToggleStream').textContent = "▶ START LIVE AUDIO";
+      document.getElementById('btnMetalSwitch').textContent = "SWITCH: OFF";
+      updateTierUI();
+    }
+
+    function stepEscalatorSample(sr) {
+      const t = sampleClock / sr;
+      sampleClock++;
+
+      if (metalSwitchMode) {
+        if (metalSwitchOn) {
+          // Escalate 0 -> 4 over 30 seconds
+          continuousLevel = Math.min(4.0, continuousLevel + (4.0 / (30.0 * sr)));
+        } else {
+          // De-escalate 4 -> 0 over 300 seconds (5 minutes!)
+          continuousLevel = Math.max(0.0, continuousLevel - (4.0 / (300.0 * sr)));
+        }
+        deltaR = Math.pow(continuousLevel / 4.0, 1.35) * 0.95;
+      }
+
+      const level = continuousLevel;
+      const dr = deltaR;
+
+      // Update randomized registers
+      if (regTimer <= 0) {
+        inRegGap = !inRegGap;
+        if (!inRegGap) {
+          const impIdx = dr > 0.2 ? Math.floor(Math.random() * 16) : (Math.floor(sampleClock / 8000) % 16);
+          const canIdx = dr > 0.2 ? Math.floor(Math.random() * 16) : ((Math.floor(sampleClock / 8000) + 3) % 16);
+          const dtmfIdx = dr > 0.2 ? Math.floor(Math.random() * 16) : ((Math.floor(sampleClock / 8000) + 7) % 16);
+          activeImplant = [TABLES.IMPLANT_DTMF[impIdx].f1, TABLES.IMPLANT_DTMF[impIdx].f2];
+          activeCanal = [TABLES.EAR_RESONANCE_DTMF[canIdx].f1, TABLES.EAR_RESONANCE_DTMF[canIdx].f2];
+          activeDtmf = [TABLES.DTMF_TABLE[dtmfIdx].f1, TABLES.DTMF_TABLE[dtmfIdx].f2];
+          const durMs = Math.max(35, 140 + dr * (Math.random() * 2 - 1) * 110);
+          regTimer = Math.floor((durMs / 1000.0) * sr);
+        } else {
+          const gapMs = dr > 0.5 ? 25 + Math.pow(Math.random(), 1.8) * 480 * dr : 55;
+          regTimer = Math.floor((gapMs / 1000.0) * sr);
+        }
+      } else {
+        regTimer--;
+      }
+
+      // Update Haas spatial time-dilation
+      const haasWeight = Math.max(0, Math.min(1, level - 3.0));
+      if (haasWeight > 0.01) {
+        if (haasTimer <= 0) {
+          const waitSec = 0.12 + Math.pow(Math.random(), 1.6) * (0.4 + 1.25 * dr);
+          haasTimer = Math.floor(waitSec * sr);
+          const r = Math.random();
+          haasDir = r < 0.44 ? 1 : (r < 0.88 ? -1 : 0);
+          const lagSec = 0.0016 + Math.random() * 0.0028 * Math.max(0.3, dr);
+          haasLagSamples = Math.min(500, Math.max(1, Math.floor(lagSec * sr)));
+          haasAtten = 0.16 + (1.0 - dr) * 0.15;
+        } else {
+          haasTimer--;
+        }
+      } else {
+        haasDir = 0;
+      }
+
+      const syllabicEnv = 0.5 * (1 + Math.sin(2 * Math.PI * 4.0 * t));
+      const harmonic = (0.5 * Math.sin(2 * Math.PI * 300 * t)
+        + 0.3 * Math.sin(2 * Math.PI * 600 * t)
+        + 0.2 * Math.sin(2 * Math.PI * 900 * t)) * syllabicEnv;
+      const wHarm = level < 1.0 ? Math.max(0.2, level) : Math.max(0.2, 1.0 - Math.max(0, level - 1.5) * 0.4);
+
+      const wSmear = Math.min(1.0, level) * 0.55;
+      const smear = 0.5 * Math.sin(2 * Math.PI * 1050 * t) + 0.5 * Math.sin(2 * Math.PI * 1150 * t);
+
+      const wT2 = Math.max(0, Math.min(1, level - 1.0));
+      const basalBeat = 0.5 * Math.sin(2 * Math.PI * 3450 * t) + 0.5 * Math.sin(2 * Math.PI * 3535 * t);
+      const cisPulse = (Math.sin(2 * Math.PI * 900 * t) > 0.9 ? 0.65 : -0.05) * syllabicEnv;
+      const gate = inRegGap ? 0.0 : 1.0;
+      const impSig = (0.65 * Math.sin(2 * Math.PI * activeImplant[0] * t)
+        + 0.40 * Math.sin(2 * Math.PI * activeImplant[1] * t)) * gate;
+
+      const wT3 = Math.max(0, Math.min(1, level - 2.0));
+      const canSig = (0.5 * Math.sin(2 * Math.PI * activeCanal[0] * t)
+        + 0.5 * Math.sin(2 * Math.PI * activeCanal[1] * t)) * gate;
+      const dtmfSig = (0.5 * Math.sin(2 * Math.PI * activeDtmf[0] * t)
+        + 0.7 * Math.sin(2 * Math.PI * activeDtmf[1] * t)) * gate;
+
+      const formantAnchor = 0.5 * Math.sin(2 * Math.PI * 730 * t) + 0.5 * Math.sin(2 * Math.PI * 3000 * t);
+
+      const mono = wHarm * harmonic * 0.45
+        + wSmear * smear * 0.45
+        + wT2 * (basalBeat * 0.28 + cisPulse * 0.25 + impSig * 0.35)
+        + wT3 * (canSig * 0.32 + dtmfSig * 0.30)
+        + haasWeight * formantAnchor * 0.45;
+
+      const bufLen = delayBufL.length;
+      delayBufL[delayWriteIdx] = mono;
+      delayBufR[delayWriteIdx] = mono;
+      const delayedIdx = (delayWriteIdx + bufLen - haasLagSamples) % bufLen;
+      delayWriteIdx = (delayWriteIdx + 1) % bufLen;
+
+      let L = mono, R = mono;
+      if (haasWeight > 0.01 && haasDir !== 0) {
+        if (haasDir > 0) {
+          L = mono * (1 - haasWeight) + (delayBufL[delayedIdx] * haasAtten) * haasWeight;
+        } else {
+          R = mono * (1 - haasWeight) + (delayBufR[delayedIdx] * haasAtten) * haasWeight;
+        }
+      }
+      return [Math.tanh(L * 0.85), Math.tanh(R * 0.85)];
+    }
+
+    // UI Scope & Status Loop
+    function renderScopeLoop() {
+      const canvas = document.getElementById('scopeCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#080a10';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw L (Gold) & R (Cyan)
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#fbbf24';
+      ctx.beginPath();
+      for (let i = 0; i < scopeDataL.length; i++) {
+        const x = (i / (scopeDataL.length - 1)) * canvas.width;
+        const y = (0.5 - scopeDataL[i] * 0.42) * canvas.height;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = '#38bdf8';
+      ctx.beginPath();
+      for (let i = 0; i < scopeDataR.length; i++) {
+        const x = (i / (scopeDataR.length - 1)) * canvas.width;
+        const y = (0.5 - scopeDataR[i] * 0.42) * canvas.height;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      if (isStreaming) {
+        document.getElementById('statusRegisters').textContent =
+          `Registers: Imp[${activeImplant[0]}+${activeImplant[1]}Hz] Canal[${activeCanal[0]}+${activeCanal[1]}Hz]`;
+        const lagMs = (haasLagSamples / 44.1).toFixed(2);
+        const dirTxt = haasDir > 0 ? `SNAP RIGHT (+${lagMs}ms Haas)` : haasDir < 0 ? `SNAP LEFT (+${lagMs}ms Haas)` : "CENTER";
+        document.getElementById('statusHaas').textContent = `Haas Spatial Vector: ${dirTxt}`;
+        if (metalSwitchMode) {
+          document.getElementById('sliderDeltaR').value = Math.round(deltaR * 100);
+          updateDeltaRLabel();
+          updateTierUI();
+          const remSec = (continuousLevel / 4.0) * 300.0;
+          const mins = Math.floor(remSec / 60);
+          const secs = (remSec % 60).toFixed(1).padStart(4, '0');
+          document.getElementById('lblDeescTimer').textContent = metalSwitchOn
+            ? `ESCALATING ▲ (${mins}m ${secs}s buffered)`
+            : `DE-ESCALATING ▼ ${mins}m ${secs}s remaining`;
+        }
+      }
+      requestAnimationFrame(renderScopeLoop);
+    }
+
+    // =========================================================================
+    //  TAB 2: KEYPAD RENDERING & INTERACTIVE SYNTHESIS
+    // =========================================================================
+    let noteMs = 160;
+    let gapMs = 60;
+
+    function updateNoteSpeed(val) {
+      noteMs = Number(val);
+      gapMs = Math.round(noteMs * 0.375);
+      document.getElementById('lblNoteSpeed').textContent = `${noteMs} ms / ${gapMs} ms`;
+    }
+
+    function renderKeypad() {
+      const tableKey = document.getElementById('selectKeypadTable').value;
+      const entries = TABLES[tableKey];
+      const grid = document.getElementById('keypadGrid');
+      grid.innerHTML = '';
+      entries.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'key-btn' + (item.mil ? ' key-Autovon' : '');
+        btn.innerHTML = `
+          <span class="key-char">${item.k}</span>
+          <span class="key-freqs">${item.f1} + ${item.f2} Hz</span>
+          <span class="key-phoneme">${item.p}</span>
+        `;
+        btn.onmousedown = () => triggerSingleKey(tableKey, item, btn);
+        btn.ontouchstart = (e) => { e.preventDefault(); triggerSingleKey(tableKey, item, btn); };
+        grid.appendChild(btn);
+      });
+    }
+
+    function triggerSingleKey(tableKey, item, btnEl) {
+      ensureAudio();
+      if (btnEl) {
+        btnEl.classList.add('playing');
+        setTimeout(() => btnEl.classList.remove('playing'), noteMs);
+      }
+      playDualToneAt(item.f1, item.f2, tableKey, audioCtx.currentTime, noteMs / 1000.0);
+    }
+
+    function playDualToneAt(f1, f2, tableKey, startTime, durSec) {
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const g1 = audioCtx.createGain();
+      const g2 = audioCtx.createGain();
+      const env = audioCtx.createGain();
+
+      osc1.frequency.value = f1;
+      osc2.frequency.value = f2;
+
+      if (tableKey === 'DTMF_TABLE') {
+        g1.gain.value = 0.45; g2.gain.value = 0.63; // +3dB twist
+      } else if (tableKey === 'IMPLANT_DTMF') {
+        g1.gain.value = 0.60; g2.gain.value = (f2 === 3000) ? 0.32 : 0.48;
+      } else if (tableKey === 'EAR_RESONANCE_DTMF') {
+        g1.gain.value = 0.25; g2.gain.value = 0.25; // Conservative canal protection
+      } else {
+        g1.gain.value = 0.55; g2.gain.value = 0.55;
+      }
+
+      env.gain.setValueAtTime(0.0001, startTime);
+      env.gain.linearRampToValueAtTime(masterGain, startTime + 0.006);
+      env.gain.setValueAtTime(masterGain, Math.max(startTime + 0.007, startTime + durSec - 0.006));
+      env.gain.linearRampToValueAtTime(0.0001, startTime + durSec);
+
+      osc1.connect(g1); osc2.connect(g2);
+      g1.connect(env); g2.connect(env);
+      env.connect(audioCtx.destination);
+
+      osc1.start(startTime); osc2.start(startTime);
+      osc1.stop(startTime + durSec + 0.01); osc2.stop(startTime + durSec + 0.01);
+    }
+
+    function playBlueBox2600() {
+      ensureAudio();
+      playDualToneAt(2600, 2600, 'DTMF_TABLE', audioCtx.currentTime, 0.45);
+      awardStar("2600 Hz Trunk Seize");
+    }
+
+    function playRandomRoulette() {
+      const keys = "123A456B789C*0#D";
+      let s = "";
+      for (let i = 0; i < 12; i++) s += keys[Math.floor(Math.random() * keys.length)];
+      document.getElementById('inputDialSeq').value = s;
+      playDialSequence();
+    }
+
+    function loadMacro(seq, padName) {
+      document.getElementById('selectKeypadTable').value = padName;
+      renderKeypad();
+      document.getElementById('inputDialSeq').value = seq;
+      playDialSequence();
+      awardStar(padName);
+    }
+
+    function playDialSequence() {
+      ensureAudio();
+      const tableKey = document.getElementById('selectKeypadTable').value;
+      const entries = TABLES[tableKey];
+      const seq = document.getElementById('inputDialSeq').value.toUpperCase();
+      let cursor = audioCtx.currentTime + 0.02;
+
+      for (const ch of seq) {
+        if (ch === ' ') {
+          cursor += (gapMs * 2.2) / 1000.0;
+          continue;
+        }
+        const item = entries.find(e => e.k === ch);
+        if (item) {
+          const jitter = 1.0 + deltaR * (Math.random() * 0.7 - 0.35);
+          const d = Math.max(0.03, (noteMs / 1000.0) * jitter);
+          const g = Math.max(0.015, (gapMs / 1000.0) * (1.0 + deltaR * (Math.random() - 0.3)));
+          playDualToneAt(item.f1, item.f2, tableKey, cursor, d);
+          cursor += d + g;
+        }
+      }
+    }
+
+    // =========================================================================
+    //  PURE CLIENT-SIDE .WAV ENCODER (WORKS OFFLINE & ON GITHUB PAGES!)
+    // =========================================================================
+    function encodeWavFromInterleavedI16(samples, sampleRate, channels) {
+      const dataBytes = samples.length * 2;
+      const buffer = new ArrayBuffer(44 + dataBytes);
+      const view = new DataView(buffer);
+      const writeStr = (off, s) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+
+      writeStr(0, 'RIFF');
+      view.setUint32(4, 36 + dataBytes, true);
+      writeStr(8, 'WAVE');
+      writeStr(12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, channels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * channels * 2, true);
+      view.setUint16(32, channels * 2, true);
+      view.setUint16(34, 16, true);
+      writeStr(36, 'data');
+      view.setUint32(40, dataBytes, true);
+      let offset = 44;
+      for (let i = 0; i < samples.length; i++, offset += 2) {
+        view.setInt16(offset, samples[i], true);
+      }
+      return new Blob([buffer], { type: 'audio/wav' });
+    }
+
+    function triggerBlobDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+    }
+
+    function downloadDialSequenceWav() {
+      const tableKey = document.getElementById('selectKeypadTable').value;
+      const entries = TABLES[tableKey];
+      const seq = document.getElementById('inputDialSeq').value.toUpperCase();
+      const sr = 44100;
+      const nTone = Math.floor(sr * (noteMs / 1000.0));
+      const nGap = Math.floor(sr * (gapMs / 1000.0));
+      const fadeLen = Math.floor(sr * 0.006);
+      const out = [];
+
+      for (const ch of seq) {
+        if (ch === ' ') {
+          for (let i = 0; i < nGap * 2; i++) out.push(0);
+          continue;
+        }
+        const item = entries.find(e => e.k === ch);
+        if (item) {
+          for (let i = 0; i < nTone; i++) {
+            const t = i / sr;
+            let env = 1.0;
+            if (i < fadeLen) env = 0.5 * (1 - Math.cos(Math.PI * i / fadeLen));
+            else if (i >= nTone - fadeLen) env = 0.5 * (1 - Math.cos(Math.PI * (nTone - 1 - i) / fadeLen));
+            const s = (0.5 * Math.sin(2 * Math.PI * item.f1 * t) + 0.5 * Math.sin(2 * Math.PI * item.f2 * t)) * env;
+            const scale = tableKey === 'EAR_RESONANCE_DTMF' ? 12000 : 28000;
+            out.push(Math.max(-32767, Math.min(32767, Math.round(s * scale))));
+          }
+          for (let i = 0; i < nGap; i++) out.push(0);
+        }
+      }
+      const blob = encodeWavFromInterleavedI16(Int16Array.from(out), sr, 1);
+      triggerBlobDownload(blob, `${tableKey.toLowerCase()}_sequence.wav`);
+      awardStar("WAV Exported");
+    }
+
+    function exportCurrentTierWav(isDeescalate) {
+      const sr = 44100;
+      const dur = isDeescalate ? 8.0 : 4.0;
+      const frames = Math.floor(sr * dur);
+      const pcm = new Int16Array(frames * 2);
+      const savedLevel = continuousLevel;
+      const savedDr = deltaR;
+      const startLvl = Math.max(1.0, selectedTier);
+
+      for (let i = 0; i < frames; i++) {
+        if (isDeescalate) {
+          const rem = 1.0 - (i / frames);
+          continuousLevel = startLvl * rem;
+          deltaR = savedDr * Math.pow(rem, 1.8);
+        }
+        const [l, r] = stepEscalatorSample(sr);
+        pcm[i * 2] = Math.round(l * 29000);
+        pcm[i * 2 + 1] = Math.round(r * 29000);
+      }
+      continuousLevel = savedLevel;
+      deltaR = savedDr;
+      const blob = encodeWavFromInterleavedI16(pcm, sr, 2);
+      const name = isDeescalate ? `tier_${selectedTier}_deescalation_ramp.wav` : `defense_tier_${selectedTier}.wav`;
+      triggerBlobDownload(blob, name);
+      awardStar(name);
+    }
+
+    function renderClassicPresetCards() {
+      const grid = document.getElementById('classicPresetsGrid');
+      grid.innerHTML = '';
+      CLASSIC_PRESETS.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'tier-card';
+        div.innerHTML = `
+          <div class="tier-head"><span style="color:var(--gold)">${p.file}</span><span style="color:var(--cyan)">${p.script}</span></div>
+          <div class="tier-desc" style="margin:6px 0 10px 0;">${p.desc}</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary" onclick="playOrDownloadClassic(${p.id}, true)">▶ Play Preview</button>
+            <button class="btn btn-secondary" onclick="playOrDownloadClassic(${p.id}, false)">⬇ Download ${p.file}</button>
+          </div>
+        `;
+        grid.appendChild(div);
+      });
+    }
+
+    function playOrDownloadClassic(id, playOnly) {
+      ensureAudio();
+      let sr = 44100, channels = 1, pcm = [];
+      if (id === 0) {
+        sr = 8000;
+        for (let k = 0; k < 10; k++) {
+          for (let i = 0; i < 800; i++) {
+            const t = i / sr;
+            const s = 0.5 * Math.sin(2 * Math.PI * 941 * t) + 0.7 * Math.sin(2 * Math.PI * 1336 * t);
+            pcm.push(Math.round(Math.max(-1, Math.min(1, s)) * 32767));
+          }
+          for (let i = 0; i < 400; i++) pcm.push(0);
+        }
+      } else if (id === 1) {
+        document.getElementById('selectKeypadTable').value = 'EAR_RESONANCE_DTMF';
+        document.getElementById('inputDialSeq').value = '123456789*0#';
+        if (playOnly) { playDialSequence(); return; }
+        downloadDialSequenceWav(); return;
+      } else if (id === 2) {
+        channels = 2;
+        const n = Math.floor(2.5 * sr), snap = Math.floor(1.2 * sr), lag = Math.floor(0.0025 * sr);
+        const carrier = new Float64Array(n);
+        for (let i = 0; i < n; i++) {
+          const t = i / sr;
+          carrier[i] = 0.5 * Math.sin(2 * Math.PI * 730 * t) + 0.5 * Math.sin(2 * Math.PI * 3000 * t);
+        }
+        for (let i = 0; i < n; i++) {
+          const l = i < snap ? carrier[i] : (i >= snap + lag ? carrier[i - lag] * 0.25 : 0);
+          const r = carrier[i];
+          pcm.push(Math.round(l * 29000), Math.round(r * 29000));
+        }
+      } else if (id === 3) {
+        document.getElementById('selectKeypadTable').value = 'IMPLANT_DTMF';
+        document.getElementById('inputDialSeq').value = '137#20';
+        if (playOnly) { playDialSequence(); return; }
+        downloadDialSequenceWav(); return;
+      } else if (id === 4) {
+        const n = 3 * sr;
+        for (let i = 0; i < n; i++) {
+          const t = i / sr;
+          const c1 = 0.5 * Math.sin(2 * Math.PI * 1050 * t) + 0.5 * Math.sin(2 * Math.PI * 1150 * t);
+          const c2 = 0.5 * Math.sin(2 * Math.PI * 3450 * t) + 0.5 * Math.sin(2 * Math.PI * 3535 * t);
+          pcm.push(Math.round((c1 * 0.6 + c2 * 0.4) * 28000));
+        }
+      } else {
+        const n = 3 * sr, half = Math.floor(n / 2);
+        for (let i = 0; i < n; i++) {
+          const t = i / sr;
+          const env = 0.5 * (1 + Math.sin(2 * Math.PI * 4 * t));
+          const sig = i < half
+            ? (0.5 * Math.sin(2 * Math.PI * 300 * t) + 0.3 * Math.sin(2 * Math.PI * 600 * t) + 0.2 * Math.sin(2 * Math.PI * 900 * t)) * env
+            : (Math.sin(2 * Math.PI * 900 * t) > 0.9 ? 1.0 : 0.0) * env;
+          pcm.push(Math.round(sig * 28000));
+        }
+      }
+
+      const blob = encodeWavFromInterleavedI16(Int16Array.from(pcm), sr, channels);
+      if (playOnly) {
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.play();
+      } else {
+        triggerBlobDownload(blob, CLASSIC_PRESETS[id].file);
+      }
+      awardStar(CLASSIC_PRESETS[id].file);
+    }
+
+    renderKeypad();
+    renderClassicPresetCards();
+    renderScopeLoop();
+  </script>
+</body>
+</html>

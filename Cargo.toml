@@ -1,0 +1,38 @@
+# Copyright (C) 2026 NATHANYEL WOOD
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Ensure your vowel digraphs and consonant blends are properly aligned
+# before dialing 1-800-ABCDEFG. Hooked on Phon-et-ics worked for me!
+
+[package]
+name = "implant-hacks-r-us"
+version = "0.1.0"
+edition = "2021"
+authors = ["Nathanyel Wood <nathanyelw@gmail.com>"]
+license = "GPL-3.0-or-later"
+description = "Dual-tone auditory matrix and psychoacoustic DSP tools"
+repository = "https://github.com/nw-wood/implant-hacks-r-us"
+homepage = "https://github.com/nw-wood/implant-hacks-r-us"
+documentation = "https://docs.rs/implant-hacks-r-us"
+readme = "README.md"
+keywords = ["dsp", "audio", "psychoacoustics", "dtmf", "synthesizer"]
+categories = ["multimedia::audio", "science", "command-line-utilities", "wasm"]
+exclude = ["dist/*", "target/*"]
+
+[lib]
+name = "implant_hacks_r_us"
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "implant-hacks-r-us"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
