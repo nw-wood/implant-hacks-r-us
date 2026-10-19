@@ -79,12 +79,12 @@ public:
       return;
     }
 
-    const float up_step   = 4.0f / (ESCALATE_SEC * SAMPLE_RATE);
-    const float down_step = 4.0f / (DEESCALATE_SEC * SAMPLE_RATE);
+    const float up_step   = 5.0f / (ESCALATE_SEC * SAMPLE_RATE);
+    const float down_step = 5.0f / (DEESCALATE_SEC * SAMPLE_RATE);
 
     for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
       if (switch_engaged) {
-        current_level = fminf(4.0f, current_level + up_step);
+        current_level = fminf(5.0f, current_level + up_step);
       } else {
         current_level = fmaxf(0.0f, current_level - down_step);
       }
@@ -96,7 +96,7 @@ public:
       }
 
       float lvl = current_level;
-      float dr  = powf(lvl / 4.0f, 1.35f) * 0.95f;
+      float dr  = fminf(1.0f, powf(fminf(1.0f, lvl / 4.0f), 1.35f) * 0.98f);
       float t   = (float)(sample_clock++) / SAMPLE_RATE;
 
       // Register Hopping with Randomness Delta (dr)
@@ -117,7 +117,7 @@ public:
         reg_timer--;
       }
 
-      // Haas Spatial Dilation (Tier 3 -> 4)
+      // Haas Spatial Dilation (Tier 3 -> 5)
       float haas_w = fminf(1.0f, fmaxf(0.0f, lvl - 3.0f));
       if (haas_w > 0.01f) {
         if (haas_timer == 0) {
@@ -143,6 +143,7 @@ public:
       float w_smear = fminf(1.0f, lvl) * 0.5f;
       float w_t2 = fminf(1.0f, fmaxf(0.0f, lvl - 1.0f));
       float w_t3 = fminf(1.0f, fmaxf(0.0f, lvl - 2.0f));
+      float w_t5 = fminf(1.0f, fmaxf(0.0f, lvl - 4.0f));
       float gate = in_gap ? 0.0f : 1.0f;
 
       float imp = (0.65f * sinf(6.2831853f * imp_f1 * t) + 0.40f * sinf(6.2831853f * imp_f2 * t)) * gate;
@@ -150,9 +151,21 @@ public:
       float dtm = (0.50f * sinf(6.2831853f * dtmf_f1 * t) + 0.70f * sinf(6.2831853f * dtmf_f2 * t)) * gate;
       float anchor = 0.5f * sinf(6.2831853f * 730.0f * t) + 0.5f * sinf(6.2831853f * 3000.0f * t);
 
-      float mono = 0.35f * harm + w_smear * smear * 0.4f
+      // Tier 5 Secret Black Workbook: Continuous un-gated 220 Hz + 7200 Hz rail lock + Grey Noise static
+      float black_book = 0.0f;
+      if (w_t5 > 0.001f) {
+        float rails = 0.65f * sinf(6.2831853f * 220.0f * t) + 0.55f * sinf(6.2831853f * 7200.0f * t);
+        float white = rand_f32() * 2.0f - 1.0f;
+        grey_lp  += 0.045f * (white - grey_lp);
+        grey_mid += 0.32f  * (white - grey_mid);
+        float grey = grey_lp * 0.65f + white * 0.22f + (white - grey_mid) * 0.55f;
+        black_book = w_t5 * (rails * 0.52f + grey * 0.38f);
+      }
+
+      float bg_scale = 1.0f - (w_t5 * 0.28f);
+      float mono = (0.35f * harm + w_smear * smear * 0.4f
                  + w_t2 * imp * 0.35f + w_t3 * (can * 0.3f + dtm * 0.3f)
-                 + haas_w * anchor * 0.4f;
+                 + haas_w * anchor * 0.4f) * bg_scale + black_book;
 
       delay_l[delay_idx] = mono;
       delay_r[delay_idx] = mono;
@@ -183,6 +196,7 @@ private:
   float imp_f1 = 220.0f, imp_f2 = 3000.0f;
   float can_f1 = 3100.0f, can_f2 = 4500.0f;
   float dtmf_f1 = 941.0f, dtmf_f2 = 1336.0f;
+  float grey_lp = 0.0f, grey_mid = 0.0f;
   uint32_t haas_timer;
   int8_t haas_dir;
   uint16_t haas_lag;

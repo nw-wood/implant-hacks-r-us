@@ -132,6 +132,7 @@
     .tier-2.active { border-color: var(--orange-wb); }
     .tier-3.active { border-color: var(--red-wb); }
     .tier-4.active { border-color: var(--purple-wb); }
+    .tier-5.active { border-color: #f8fafc; background: #05060a; box-shadow: 0 0 18px rgba(248, 250, 252, 0.35); }
     .tier-head {
       display: flex;
       justify-content: space-between;
@@ -330,6 +331,10 @@
             <div class="tier-head"><span style="color:var(--purple-wb)">TIER 4: Purple Master Tape — Haas Anticipation</span><span>ΔR = 0.95</span></div>
             <div class="tier-desc">Full register randomization + dilated Precedence (Haas) 1.6–4.4ms L/R spatial snaps to lock cortical anticipation!</div>
           </div>
+          <div class="tier-card tier-5" id="card-tier-5" onclick="selectTier(5)">
+            <div class="tier-head"><span style="color:#f8fafc">★ TIER 5: SECRET BLACK WORKBOOK — Full-Rail Overwrite</span><span>ΔR = 1.00</span></div>
+            <div class="tier-desc">Continuous un-gated 220 Hz (Apical Bottom) + 7200 Hz (Basal Top) rail overwrite + equal-loudness Grey Noise static on top of Tiers 0–4!</div>
+          </div>
         </div>
       </div>
 
@@ -366,7 +371,7 @@
             <div>
               <strong style="color:var(--purple-wb);font-size:0.88rem;">SINGLE-SWITCH METAL ESCALATOR MODE</strong>
               <div style="font-size:0.73rem;color:var(--muted);">
-                Switch ON: slides continuously 0.0 → 4.0 • Switch OFF: 5-Minute (300s) De-Escalation Curve!
+                Switch ON: slides continuously 0.0 → 5.0 (Black Book) • Switch OFF: 5-Minute (300s) De-Escalation!
               </div>
             </div>
             <button class="btn btn-secondary" id="btnMetalSwitch" onclick="toggleMetalSwitch()">
@@ -374,7 +379,7 @@
             </button>
           </div>
           <div style="margin-top:8px;font-size:0.78rem;display:flex;justify-content:space-between;">
-            <span>Continuous Level: <strong id="lblContinuousLevel" style="color:var(--gold)">0.00 / 4.00</strong></span>
+            <span>Continuous Level: <strong id="lblContinuousLevel" style="color:var(--gold)">0.00 / 5.00</strong></span>
             <span>5-Min De-Escalation Timer: <strong id="lblDeescTimer" style="color:var(--green-ok)">STANDBY (300.0s)</strong></span>
           </div>
         </div>
@@ -661,16 +666,27 @@
       btn.classList.add('active');
     }
 
-    const TIER_DEFAULT_DR = [0.00, 0.05, 0.35, 0.68, 0.95];
+    let greyLpState = 0.0;
+    let greyMidState = 0.0;
+
+    function nextGreyNoiseSample() {
+      const white = Math.random() * 2.0 - 1.0;
+      greyLpState += 0.045 * (white - greyLpState);
+      greyMidState += 0.32 * (white - greyMidState);
+      const highShelf = white - greyMidState;
+      return greyLpState * 0.65 + white * 0.22 + highShelf * 0.55;
+    }
+
+    const TIER_DEFAULT_DR = [0.00, 0.05, 0.35, 0.68, 0.95, 1.00];
 
     function selectTier(tier) {
-      selectedTier = Math.max(0, Math.min(4, tier));
+      selectedTier = Math.max(0, Math.min(5, tier));
       continuousLevel = selectedTier;
       deltaR = TIER_DEFAULT_DR[selectedTier];
       document.getElementById('sliderDeltaR').value = Math.round(deltaR * 100);
       updateDeltaRLabel();
       updateTierUI();
-      awardStar(`Tier ${selectedTier} Workbook`);
+      awardStar(selectedTier === 5 ? "★ SECRET BLACK WORKBOOK ★" : `Tier ${selectedTier} Workbook`);
     }
 
     function stepTier(dir) {
@@ -681,14 +697,22 @@
     }
 
     function updateTierUI() {
-      for (let i = 0; i <= 4; i++) {
-        document.getElementById('card-tier-' + i).classList.toggle('active', i === Math.round(continuousLevel));
+      for (let i = 0; i <= 5; i++) {
+        const el = document.getElementById('card-tier-' + i);
+        if (el) el.classList.toggle('active', i === Math.round(continuousLevel));
       }
-      const names = ["TIER 0: GROUNDING", "TIER 1: SMEAR", "TIER 2: DIGRAPH LOCK", "TIER 3: AGC CLAMP", "TIER 4: HAAS OVERDRIVE"];
+      const names = [
+        "TIER 0: GROUNDING",
+        "TIER 1: SMEAR",
+        "TIER 2: DIGRAPH LOCK",
+        "TIER 3: AGC CLAMP",
+        "TIER 4: HAAS OVERDRIVE",
+        "★ TIER 5: SECRET BLACK BOOK ★"
+      ];
       document.getElementById('liveTierBadge').textContent = isStreaming
         ? `${names[Math.round(continuousLevel)]} (LIVE)`
         : `${names[Math.round(continuousLevel)]} (READY)`;
-      document.getElementById('lblContinuousLevel').textContent = `${continuousLevel.toFixed(2)} / 4.00`;
+      document.getElementById('lblContinuousLevel').textContent = `${continuousLevel.toFixed(2)} / 5.00`;
     }
 
     function onDeltaRSlider(val) {
@@ -697,7 +721,7 @@
     }
 
     function updateDeltaRLabel() {
-      let desc = deltaR < 0.15 ? "Predictable" : deltaR < 0.5 ? "Moderate Jitter" : deltaR < 0.8 ? "High Entropy" : "Cortical Anticipation!";
+      let desc = deltaR < 0.15 ? "Predictable" : deltaR < 0.5 ? "Moderate Jitter" : deltaR < 0.8 ? "High Entropy" : deltaR < 0.99 ? "Cortical Anticipation!" : "BLACK BOOK FULL OVERWRITE";
       document.getElementById('lblDeltaR').textContent = `${deltaR.toFixed(2)} (${desc})`;
     }
 
@@ -712,7 +736,7 @@
       metalSwitchOn = !metalSwitchOn;
       const btn = document.getElementById('btnMetalSwitch');
       if (metalSwitchOn) {
-        btn.textContent = "SWITCH: ON (ESCALATING ▲)";
+        btn.textContent = "SWITCH: ON (ESCALATING TO BLACK BOOK ▲)";
         btn.style.background = "#7c2d12";
         btn.style.borderColor = "#fbbf24";
         if (!isStreaming) toggleDefenseAudio();
@@ -771,13 +795,13 @@
 
       if (metalSwitchMode) {
         if (metalSwitchOn) {
-          // Escalate 0 -> 4 over 30 seconds
-          continuousLevel = Math.min(4.0, continuousLevel + (4.0 / (30.0 * sr)));
+          // Escalate 0 -> 5 (Secret Black Workbook) over 35 seconds
+          continuousLevel = Math.min(5.0, continuousLevel + (5.0 / (35.0 * sr)));
         } else {
-          // De-escalate 4 -> 0 over 300 seconds (5 minutes!)
-          continuousLevel = Math.max(0.0, continuousLevel - (4.0 / (300.0 * sr)));
+          // De-escalate 5 -> 0 over 300 seconds (5 minutes!)
+          continuousLevel = Math.max(0.0, continuousLevel - (5.0 / (300.0 * sr)));
         }
-        deltaR = Math.pow(continuousLevel / 4.0, 1.35) * 0.95;
+        deltaR = Math.min(1.0, Math.pow(Math.min(1.0, continuousLevel / 4.0), 1.35) * 0.98);
       }
 
       const level = continuousLevel;
@@ -825,7 +849,7 @@
       const harmonic = (0.5 * Math.sin(2 * Math.PI * 300 * t)
         + 0.3 * Math.sin(2 * Math.PI * 600 * t)
         + 0.2 * Math.sin(2 * Math.PI * 900 * t)) * syllabicEnv;
-      const wHarm = level < 1.0 ? Math.max(0.2, level) : Math.max(0.2, 1.0 - Math.max(0, level - 1.5) * 0.4);
+      const wHarm = level < 1.0 ? Math.max(0.2, level) : Math.max(0.22, 1.0 - Math.max(0, level - 1.5) * 0.4);
 
       const wSmear = Math.min(1.0, level) * 0.55;
       const smear = 0.5 * Math.sin(2 * Math.PI * 1050 * t) + 0.5 * Math.sin(2 * Math.PI * 1150 * t);
@@ -845,11 +869,26 @@
 
       const formantAnchor = 0.5 * Math.sin(2 * Math.PI * 730 * t) + 0.5 * Math.sin(2 * Math.PI * 3000 * t);
 
-      const mono = wHarm * harmonic * 0.45
+      // Layer 5: SECRET BLACK WORKBOOK!
+      // Continuous un-gated 220 Hz (Apical Bottom) + 7200 Hz (Basal Top) rail overwrite
+      // + inverse-Fletcher-Munson Grey Noise static on top of Tiers 0-4!
+      const wT5 = Math.max(0, Math.min(1, level - 4.0));
+      let blackBookRails = 0.0;
+      let greyNoise = 0.0;
+      if (wT5 > 0.001) {
+        blackBookRails = 0.65 * Math.sin(2 * Math.PI * 220.0 * t)
+          + 0.55 * Math.sin(2 * Math.PI * 7200.0 * t);
+        greyNoise = nextGreyNoiseSample();
+      }
+
+      const bgScale = 1.0 - (wT5 * 0.28);
+      const tiers0To4 = (wHarm * harmonic * 0.45
         + wSmear * smear * 0.45
         + wT2 * (basalBeat * 0.28 + cisPulse * 0.25 + impSig * 0.35)
         + wT3 * (canSig * 0.32 + dtmfSig * 0.30)
-        + haasWeight * formantAnchor * 0.45;
+        + haasWeight * formantAnchor * 0.45) * bgScale;
+
+      const mono = tiers0To4 + wT5 * (blackBookRails * 0.52 + greyNoise * 0.38);
 
       const bufLen = delayBufL.length;
       delayBufL[delayWriteIdx] = mono;

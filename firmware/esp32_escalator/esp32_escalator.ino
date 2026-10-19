@@ -44,6 +44,8 @@ static uint8_t haas_lag = 55;
 static float delay_buf[128];
 static uint8_t delay_idx = 0;
 
+static float grey_lp = 0.0f, grey_mid = 0.0f;
+
 void setup() {
   pinMode(SWITCH_GPIO, INPUT_PULLUP);
   dac_output_enable(DAC_CHANNEL_1); // GPIO 25 (Left)
@@ -51,15 +53,15 @@ void setup() {
 }
 
 void loop() {
-  const float up_step   = 4.0f / (ESCALATE_SEC * SAMPLE_RATE);
-  const float down_step = 4.0f / (DEESCALATE_SEC * SAMPLE_RATE);
+  const float up_step   = 5.0f / (ESCALATE_SEC * SAMPLE_RATE);
+  const float down_step = 5.0f / (DEESCALATE_SEC * SAMPLE_RATE);
   const uint32_t us_per_sample = (uint32_t)(1000000.0f / SAMPLE_RATE);
   uint32_t next_tick = micros();
 
   while (true) {
     bool sw_on = (digitalRead(SWITCH_GPIO) == LOW);
     if (sw_on) {
-      current_level = fminf(4.0f, current_level + up_step);
+      current_level = fminf(5.0f, current_level + up_step);
     } else {
       current_level = fmaxf(0.0f, current_level - down_step);
     }
@@ -73,7 +75,7 @@ void loop() {
     }
 
     float lvl = current_level;
-    float dr  = (lvl / 4.0f) * 0.95f;
+    float dr  = fminf(1.0f, (lvl / 4.0f) * 0.98f);
     float t   = (float)(sample_clock++) / SAMPLE_RATE;
 
     if (reg_timer == 0) {
@@ -109,9 +111,23 @@ void loop() {
     float imp = (0.6f * sinf(6.2831853f * imp_f1 * t) + 0.4f * sinf(6.2831853f * imp_f2 * t)) * gate;
     float can = (0.5f * sinf(6.2831853f * can_f1 * t) + 0.5f * sinf(6.2831853f * can_f2 * t)) * gate;
 
-    float mono = 0.3f * harm + fminf(1.0f, lvl) * 0.3f * smear
-               + fmaxf(0.0f, lvl - 1.0f) * 0.2f * imp
-               + fmaxf(0.0f, lvl - 2.0f) * 0.2f * can;
+    // Tier 5 Secret Black Workbook: Continuous 220 Hz + 7200 Hz rail lock + Grey Noise static
+    float w_t5 = fminf(1.0f, fmaxf(0.0f, lvl - 4.0f));
+    float black_book = 0.0f;
+    if (w_t5 > 0.001f) {
+      float rails = 0.65f * sinf(6.2831853f * 220.0f * t) + 0.55f * sinf(6.2831853f * 7200.0f * t);
+      float white = ((int32_t)(esp_random() & 0xFFFF) - 32768) / 32768.0f;
+      grey_lp  += 0.06f * (white - grey_lp);
+      grey_mid += 0.38f * (white - grey_mid);
+      float grey = grey_lp * 0.65f + white * 0.22f + (white - grey_mid) * 0.55f;
+      black_book = w_t5 * (rails * 0.52f + grey * 0.38f);
+    }
+
+    float bg_scale = 1.0f - (w_t5 * 0.28f);
+    float mono = (0.3f * harm + fminf(1.0f, lvl) * 0.3f * smear
+               + fminf(1.0f, fmaxf(0.0f, lvl - 1.0f)) * 0.2f * imp
+               + fminf(1.0f, fmaxf(0.0f, lvl - 2.0f)) * 0.2f * can) * bg_scale
+               + black_book;
 
     delay_buf[delay_idx] = mono;
     uint8_t d_idx = (delay_idx + 128 - haas_lag) & 127;
